@@ -1,0 +1,79 @@
+@model PUTP2.Models.TuneInViewModel
+
+@{
+    ViewData["Title"] = "tune in";
+}
+
+<div class="tune-in-container">
+    <h1 class="tune-in-title">tune in</h1>
+
+    <div class="tune-in-content">
+        <div class="tracks-section">
+            <h2 class="section-title">now playing</h2>
+            <div class="tracks-list">
+                @if (Model.Tracks != null && Model.Tracks.Any())
+                {
+                    @foreach (var track in Model.Tracks)
+                    {
+                        <div class="track-item">
+                            <div class="track-info">
+                                <div class="track-cover">
+                                    <img src="@track.CoverUrl" alt="@track.Title">
+                                </div>
+                                <div class="track-details">
+                                    <h3>@track.Title</h3>
+                                    <p class="artist">@track.Artist</p>
+                                    <p class="album">@track.Album</p>
+                                </div>
+                            </div>
+                            <div class="track-controls">
+                                <span class="duration">@track.Duration</span>
+                                <button class="play-button">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <i class="fas fa-music"></i>
+                        <p>No tracks playing right now</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="playlists-section">
+            <h2 class="section-title">your playlists</h2>
+            <div class="playlists-grid">
+                @if (Model.Playlists != null && Model.Playlists.Any())
+                {
+                    @foreach (var playlist in Model.Playlists)
+                    {
+                        <a asp-controller="Music" asp-action="Playlist" asp-route-id="@playlist.Id" class="vinyl-cover-link">
+                            <div class="vinyl-cover">
+                                <div class="vinyl-disc"></div>
+                                <div class="cover-sleeve">
+                                    <div class="playlist-info">
+                                        <h2>@playlist.Title</h2>
+                                        <p>@playlist.TrackCount tracks • @playlist.Duration</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    }
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <i class="fas fa-music"></i>
+                        <p>No playlists yet. Create one to get started!</p>
+                        <a asp-controller="Music" asp-action="Upload" class="create-playlist-btn">Create Playlist</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div> 

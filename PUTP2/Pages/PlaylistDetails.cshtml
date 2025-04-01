@@ -1,0 +1,204 @@
+@page
+@model PUTP2.Pages.PlaylistDetailsModel
+@{
+    ViewData["Title"] = Model.PlaylistTitle;
+}
+
+<style>
+@@media (max-width: 768px) {
+    .songs-header, .song-row {
+        grid-template-columns: 50px 1fr 100px;
+    }
+
+    .song-album {
+        display: none;
+    }
+}
+
+@@media (max-width: 576px) {
+    .playlist-details {
+        padding: 10px;
+    }
+
+    .playlist-header {
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+
+    .playlist-header h1 {
+        font-size: 1.8rem;
+    }
+
+    .songs-header, .song-row {
+        padding: 10px;
+        grid-template-columns: 40px 1fr 70px;
+    }
+
+    .song-info img {
+        width: 35px;
+        height: 35px;
+    }
+}
+
+.playlist-details {
+    padding: 20px;
+    min-height: calc(100vh - var(--total-bottom-height));
+    background: var(--background-primary);
+}
+
+.playlist-header {
+    margin-bottom: 40px;
+    padding: 20px;
+    background: var(--background-secondary);
+    border-radius: 10px;
+}
+
+.header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    margin-bottom: 20px;
+    transition: color 0.2s;
+}
+
+.back-link:hover {
+    color: var(--text-primary);
+}
+
+.playlist-header h1 {
+    font-size: 2.5rem;
+    margin: 0;
+    color: var(--text-primary);
+}
+
+.playlist-stats {
+    margin-top: 10px;
+    color: var(--text-secondary);
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.songs-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.songs-header {
+    display: grid;
+    grid-template-columns: 50px 1fr 200px 100px;
+    padding: 0 20px 10px 20px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.songs-list {
+    margin-top: 10px;
+}
+
+.song-row {
+    display: grid;
+    grid-template-columns: 50px 1fr 200px 100px;
+    padding: 10px 20px;
+    border-radius: 5px;
+    align-items: center;
+    transition: background-color 0.2s;
+}
+
+.song-row:hover {
+    background: var(--background-secondary);
+}
+
+.song-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.song-info img {
+    width: 40px;
+    height: 40px;
+    border-radius: 5px;
+    object-fit: cover;
+}
+
+.song-details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.song-title {
+    color: var(--text-primary);
+}
+
+.song-artist {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.song-number {
+    color: var(--text-secondary);
+}
+
+.song-album {
+    color: var(--text-secondary);
+}
+
+.song-duration {
+    color: var(--text-secondary);
+    text-align: right;
+}
+</style>
+
+<div class="playlist-details">
+    <div class="playlist-header">
+        <div class="header-content">
+            <a asp-page="/Vault" class="back-link">
+                <i class="fas fa-chevron-left"></i>
+                Back to Vault
+            </a>
+            <h1>@Model.PlaylistTitle</h1>
+            <div class="playlist-stats">
+                <span>@Model.SongCount songs</span>
+                <span>•</span>
+                <span>@Model.TotalDuration</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="songs-container">
+        <div class="songs-header">
+            <div class="song-number">#</div>
+            <div class="song-info">Title</div>
+            <div class="song-album">Album</div>
+            <div class="song-duration">Duration</div>
+        </div>
+
+        <div class="songs-list">
+            @foreach (var song in Model.Songs)
+            {
+                <div class="song-row">
+                    <div class="song-number">@song.Number</div>
+                    <div class="song-info">
+                        <img src="@song.CoverUrl" alt="@song.Title" />
+                        <div class="song-details">
+                            <div class="song-title">@song.Title</div>
+                            <div class="song-artist">@song.Artist</div>
+                        </div>
+                    </div>
+                    <div class="song-album">@song.Album</div>
+                    <div class="song-duration">@song.Duration</div>
+                </div>
+            }
+        </div>
+    </div>
+</div> 

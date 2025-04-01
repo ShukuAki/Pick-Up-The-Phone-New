@@ -1,0 +1,136 @@
+@{
+    ViewData["Title"] = "Profile";
+}
+
+<div class="profile-container">
+    <h1>Profile</h1>
+    <!-- Profile content will go here -->
+</div>
+
+<div class="container-fluid">
+    <div class="profile-header mb-5">
+        <h1 class="display-4 mb-4">profile</h1>
+        <div class="d-flex align-items-center mb-4">
+            <div class="profile-info">
+                <h2 class="mb-1">john doe</h2>
+                <p class="text-muted mb-0">premium member</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Section -->
+    <div class="row mb-5">
+        <div class="col-6 col-md-3 mb-3">
+            <div class="stat-card">
+                <div class="p-3 text-center">
+                    <h3 class="mb-1">247</h3>
+                    <p class="text-muted mb-0">tracks uploaded</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3 mb-3">
+            <div class="stat-card">
+                <div class="p-3 text-center">
+                    <h3 class="mb-1">1.2k</h3>
+                    <p class="text-muted mb-0">followers</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3 mb-3">
+            <div class="stat-card">
+                <div class="p-3 text-center">
+                    <h3 class="mb-1">892</h3>
+                    <p class="text-muted mb-0">following</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3 mb-3">
+            <div class="stat-card">
+                <div class="p-3 text-center">
+                    <h3 class="mb-1">15.4k</h3>
+                    <p class="text-muted mb-0">total plays</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <section class="mb-5">
+        <h2 class="mb-3">recent activity</h2>
+        <div class="activity-list">
+            <div class="activity-item">
+                <div class="d-flex justify-content-between align-items-center p-3">
+                    <div>
+                        <p class="mb-1">uploaded "summer vibes mix"</p>
+                        <small class="text-muted">2 hours ago</small>
+                    </div>
+                    <button class="btn btn-link">
+                        <i class="fas fa-play"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="activity-item">
+                <div class="d-flex justify-content-between align-items-center p-3">
+                    <div>
+                        <p class="mb-1">started following "dj smith"</p>
+                        <small class="text-muted">5 hours ago</small>
+                    </div>
+                    <button class="btn btn-link">
+                        <i class="fas fa-user"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="activity-item">
+                <div class="d-flex justify-content-between align-items-center p-3">
+                    <div>
+                        <p class="mb-1">liked "chill beats to study to"</p>
+                        <small class="text-muted">yesterday</small>
+                    </div>
+                    <button class="btn btn-link">
+                        <i class="fas fa-heart"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Settings Button -->
+    <div class="text-center">
+        <button class="btn btn-outline-light">
+            <i class="fas fa-cog me-2"></i>edit profile settings
+        </button>
+    </div>
+</div>
+
+<style>
+    .stat-card {
+        background-color: var(--spotify-grey);
+        border-radius: 8px;
+        transition: background-color 0.3s ease;
+    }
+
+    .stat-card:hover {
+        background-color: #333;
+    }
+
+    .activity-item {
+        background-color: var(--spotify-grey);
+        border-radius: 8px;
+        margin-bottom: 0.5rem;
+        transition: background-color 0.3s ease;
+    }
+
+    .activity-item:hover {
+        background-color: #333;
+    }
+
+    .btn-outline-light {
+        border-color: #666;
+        color: var(--spotify-white);
+    }
+
+    .btn-outline-light:hover {
+        background-color: #333;
+        border-color: var(--spotify-white);
+    }
+</style> 

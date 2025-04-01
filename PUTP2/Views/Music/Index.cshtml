@@ -1,0 +1,50 @@
+@model IEnumerable<PUTP2.Models.Track>
+
+@{
+    ViewData["Title"] = "the vault";
+}
+
+<div class="vault-container">
+    <h1 class="vault-title">the vault</h1>
+    
+    <div class="vinyl-covers-grid">
+        @if (ViewBag.Playlists != null && ViewBag.Playlists.Count > 0)
+        {
+            @foreach (var playlist in ViewBag.Playlists)
+            {
+                <a asp-controller="Music" asp-action="Playlist" asp-route-id="@playlist.Id" class="vinyl-cover-link">
+                    <div class="vinyl-cover">
+                        <div class="vinyl-disc"></div>
+                        <div class="cover-sleeve">
+                            <div class="playlist-info">
+                                <h2>@playlist.Title</h2>
+                                <p>@playlist.TrackCount tracks • @playlist.Duration</p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            }
+        }
+        else
+        {
+            <div class="empty-state">
+                <i class="fas fa-music"></i>
+                <p>No playlists yet. Create one to get started!</p>
+                <a asp-controller="Music" asp-action="Upload" class="create-playlist-btn">Create Playlist</a>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function playPlaylist(id) {
+            // Add your playlist playing logic here
+            console.log(`Playing playlist ${id}`);
+            enablePlayerControls();
+            // Update player info based on the playlist
+            document.getElementById('currentTrackName').textContent = 'Playing from playlist';
+            document.getElementById('currentArtistName').textContent = `Playlist ${id}`;
+        }
+    </script>
+} 

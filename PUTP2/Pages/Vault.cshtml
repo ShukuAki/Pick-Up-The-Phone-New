@@ -1,0 +1,222 @@
+@page
+@model PUTP2.Pages.VaultModel
+@{
+    ViewData["Title"] = "the vault";
+}
+
+<div class="vault-container">
+    <h1 class="vault-title">the vault</h1>
+    
+    <div class="vinyl-covers-grid">
+        <a asp-page="/PlaylistDetails" asp-route-playlistId="daily-mix" class="vinyl-cover-link">
+            <div class="vinyl-cover">
+                <div class="vinyl-disc"></div>
+                <div class="cover-sleeve">
+                    <div class="playlist-info">
+                        <h2>daily mix</h2>
+                        <p>12 tracks • 45 min</p>
+                    </div>
+                </div>
+            </div>
+        </a>
+
+        <a asp-page="/PlaylistDetails" asp-route-playlistId="chill-vibes" class="vinyl-cover-link">
+            <div class="vinyl-cover">
+                <div class="vinyl-disc"></div>
+                <div class="cover-sleeve">
+                    <div class="playlist-info">
+                        <h2>chill vibes</h2>
+                        <p>8 tracks • 32 min</p>
+                    </div>
+                </div>
+            </div>
+        </a>
+
+        <a asp-page="/PlaylistDetails" asp-route-playlistId="workout-mix" class="vinyl-cover-link">
+            <div class="vinyl-cover">
+                <div class="vinyl-disc"></div>
+                <div class="cover-sleeve">
+                    <div class="playlist-info">
+                        <h2>workout mix</h2>
+                        <p>15 tracks • 58 min</p>
+                    </div>
+                </div>
+            </div>
+        </a>
+
+        <a asp-page="/PlaylistDetails" asp-route-playlistId="focus-mode" class="vinyl-cover-link">
+            <div class="vinyl-cover">
+                <div class="vinyl-disc"></div>
+                <div class="cover-sleeve">
+                    <div class="playlist-info">
+                        <h2>focus mode</h2>
+                        <p>10 tracks • 40 min</p>
+                    </div>
+                </div>
+            </div>
+        </a>
+
+        <a asp-page="/PlaylistDetails" asp-route-playlistId="evening-jazz" class="vinyl-cover-link">
+            <div class="vinyl-cover">
+                <div class="vinyl-disc"></div>
+                <div class="cover-sleeve">
+                    <div class="playlist-info">
+                        <h2>evening jazz</h2>
+                        <p>6 tracks • 28 min</p>
+                    </div>
+                </div>
+            </div>
+        </a>
+
+        <a asp-page="/PlaylistDetails" asp-route-playlistId="indie-picks" class="vinyl-cover-link">
+            <div class="vinyl-cover">
+                <div class="vinyl-disc"></div>
+                <div class="cover-sleeve">
+                    <div class="playlist-info">
+                        <h2>indie picks</h2>
+                        <p>14 tracks • 52 min</p>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<style>
+    .vault-container {
+        padding: 30px;
+        min-height: calc(100vh - var(--total-bottom-height));
+    }
+
+    .vault-title {
+        font-size: 3rem;
+        margin-bottom: 40px;
+        color: var(--text-primary);
+    }
+
+    .vinyl-covers-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 30px;
+    }
+
+    .vinyl-cover-link {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .vinyl-cover {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 1;
+        cursor: pointer;
+        padding-right: 40px;
+        transition: all 0.3s ease;
+    }
+
+    .vinyl-disc {
+        position: absolute;
+        width: 95%;
+        height: 95%;
+        border-radius: 50%;
+        top: 2.5%;
+        right: -30px;
+        z-index: 1;
+        transition: transform 0.3s ease;
+        background: repeating-radial-gradient(
+            circle at center,
+            rgba(255, 255, 255, 0.1) 0px,
+            rgba(255, 255, 255, 0.1) 2px,
+            rgba(138, 43, 226, 0.2) 3px,
+            rgba(138, 43, 226, 0.2) 4px
+        ),
+        conic-gradient(
+            from 0deg,
+            #ff6b6b,
+            #4ecdc4,
+            #45b7d1,
+            #96c93d,
+            #e056fd,
+            #ff6b6b
+        );
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.15);
+        animation: rainbow-spin 10s linear infinite;
+    }
+
+    .cover-sleeve {
+        position: absolute;
+        width: calc(100% - 40px);
+        height: 100%;
+        background: var(--surface);
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 2;
+        border: 1px solid var(--border);
+        transition: transform 0.3s ease;
+    }
+
+    .playlist-info {
+        text-align: center;
+        padding: 20px;
+    }
+
+    .playlist-info h2 {
+        margin: 0;
+        font-size: 1.5rem;
+        color: var(--text-primary);
+    }
+
+    .playlist-info p {
+        margin: 10px 0 0 0;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+
+    .vinyl-cover:hover .vinyl-disc {
+        transform: translateX(20px);
+    }
+
+    .vinyl-cover:hover .cover-sleeve {
+        transform: scale(1.02);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    @@keyframes rainbow-spin {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .vault-container {
+            padding: 20px;
+        }
+
+        .vault-title {
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .vault-container {
+            padding: 15px;
+        }
+
+        .vault-title {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        .vinyl-covers-grid {
+            gap: 20px;
+        }
+    }
+</style> 

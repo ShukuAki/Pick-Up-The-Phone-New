@@ -1,0 +1,97 @@
+@model PUTP2.Models.PlaylistViewModel
+
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<div class="playlist-container">
+    <div class="playlist-header">
+        <div class="playlist-info">
+            <h1>@Model.Title</h1>
+            <p>@Model.TrackCount tracks • @Model.Duration</p>
+        </div>
+        <div class="playlist-actions">
+            <button class="delete-playlist-btn" onclick="deletePlaylist('@Model.Id')">
+                <i class="fas fa-trash"></i> Delete Playlist
+            </button>
+        </div>
+    </div>
+
+    <div class="tracks-list">
+        @if (Model.Tracks.Count == 0)
+        {
+            <div class="empty-playlist">
+                <i class="fas fa-music"></i>
+                <p>No tracks yet. Add some music to get started!</p>
+                <a asp-controller="Music" asp-action="Upload" class="add-tracks-btn">Add Tracks</a>
+            </div>
+        }
+        else
+        {
+            foreach (var track in Model.Tracks)
+            {
+                <div class="track-item">
+                    <div class="track-info">
+                        <div class="track-cover">
+                            <img src="@track.CoverUrl" alt="@track.Title">
+                        </div>
+                        <div class="track-details">
+                            <h3>@track.Title</h3>
+                            <p class="artist">@track.Artist</p>
+                            <p class="album">@track.Album</p>
+                        </div>
+                    </div>
+                    <div class="track-controls">
+                        <span class="duration">@track.Duration</span>
+                        <button class="play-button" onclick="playTrack(@track.Id)">
+                            <i class="fas fa-play"></i>
+                        </button>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function deletePlaylist(playlistId) {
+            if (confirm('Are you sure you want to delete this playlist? This action cannot be undone.')) {
+                fetch('/Music/DeletePlaylist/' + playlistId, {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.href = '/Music/Index';
+                    } else {
+                        alert('Error deleting playlist: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error deleting playlist');
+                });
+            }
+        }
+
+        function playTrack(trackId) {
+            fetch('/Music/Play/' + trackId)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update player with track info
+                        document.getElementById('currentTrackName').textContent = data.track.title;
+                        document.getElementById('currentArtistName').textContent = data.track.artist;
+                        document.getElementById('currentTrackImage').src = data.track.coverUrl;
+                        
+                        // Enable player controls
+                        enablePlayerControls();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+    </script>
+} 

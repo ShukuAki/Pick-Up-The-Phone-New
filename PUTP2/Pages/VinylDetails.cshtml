@@ -1,0 +1,209 @@
+@page
+@model PUTP2.Pages.VinylDetailsModel
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<div class="vinyl-details-container">
+    <div class="vinyl-header">
+        <div class="vinyl-cover-large">
+            <img src="@Model.CoverUrl" alt="@Model.Title">
+        </div>
+        <div class="vinyl-info">
+            <h1>@Model.Title</h1>
+            <p class="artist">@Model.Artist</p>
+            <div class="vinyl-meta">
+                <span>@Model.ReleaseDate</span>
+                <span>•</span>
+                <span>@Model.Genre</span>
+                <span>•</span>
+                <span>@Model.Duration</span>
+                <span>•</span>
+                <span>@Model.Format</span>
+            </div>
+            <p class="description">@Model.Description</p>
+        </div>
+    </div>
+
+    <div class="tracks-section">
+        <h2>Track List</h2>
+        <div class="tracks-list">
+            @foreach (var track in Model.Tracks)
+            {
+                <div class="track-item">
+                    <div class="track-info">
+                        <div class="track-cover">
+                            <img src="@track.CoverUrl" alt="@track.Title">
+                        </div>
+                        <div class="track-details">
+                            <h3>@track.Title</h3>
+                            <p class="artist">@track.Artist</p>
+                            <p class="album">@track.Album</p>
+                        </div>
+                    </div>
+                    <div class="track-controls">
+                        <span class="duration">@track.Duration</span>
+                        <button class="play-button">
+                            <i class="fas fa-play"></i>
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .vinyl-details-container {
+        padding: 40px 20px;
+        min-height: calc(100vh - var(--total-bottom-height));
+        background: linear-gradient(to bottom, var(--background-secondary), var(--background-primary));
+        position: relative;
+    }
+
+    .back-button {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        color: var(--text-primary);
+        font-size: 24px;
+        text-decoration: none;
+        transition: transform 0.2s ease;
+    }
+
+    .back-button:hover {
+        transform: scale(1.1);
+    }
+
+    .vinyl-details-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 40px;
+        padding-top: 40px;
+    }
+
+    .vinyl-showcase {
+        position: sticky;
+        top: 40px;
+    }
+
+    .vinyl-cover.large {
+        width: 100%;
+        max-width: 400px;
+        margin: 0 auto;
+    }
+
+    .album-cover {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 4px;
+    }
+
+    .album-info {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 20px;
+        background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+        color: white;
+    }
+
+    .album-title {
+        font-size: 1.5rem;
+        margin: 0 0 5px 0;
+    }
+
+    .album-artist {
+        font-size: 1rem;
+        margin: 0;
+        opacity: 0.8;
+    }
+
+    .vinyl-info {
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+    }
+
+    .info-section {
+        background: var(--surface);
+        border-radius: 8px;
+        padding: 20px;
+        border: 1px solid var(--border);
+    }
+
+    .info-section h2 {
+        margin: 0 0 20px 0;
+        color: var(--text-primary);
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+    }
+
+    .info-item {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .info-item .label {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+
+    .info-item .value {
+        color: var(--text-primary);
+        font-size: 1.1rem;
+    }
+
+    .tracks-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .tracks-list .track-item {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 10px;
+        border-radius: 4px;
+        background: var(--background-secondary);
+    }
+
+    .track-number {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        min-width: 30px;
+    }
+
+    .track-details {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex: 1;
+    }
+
+    .track-title {
+        color: var(--text-primary);
+    }
+
+    .track-duration {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+
+    .album-description {
+        color: var(--text-primary);
+        line-height: 1.6;
+    }
+
+   
+</style> 

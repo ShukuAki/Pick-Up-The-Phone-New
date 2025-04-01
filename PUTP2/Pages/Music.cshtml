@@ -1,0 +1,189 @@
+@page "/music/{playlistId}"
+@model PUTP2.Pages.MusicModel
+@{
+    ViewData["Title"] = Model.PlaylistTitle;
+}
+
+<div class="music-player">
+    <div class="player-header">
+        <a href="/Vault" class="back-link">
+            <i class="fas fa-chevron-left"></i>
+            Back to Vault
+        </a>
+        <h1>@Model.PlaylistTitle</h1>
+        <div class="playlist-info">
+            <span>@Model.SongCount songs</span>
+            <span>•</span>
+            <span>@Model.TotalDuration</span>
+        </div>
+    </div>
+
+    <div class="tracks-container">
+        @foreach (var song in Model.Songs)
+        {
+            <div class="track-row">
+                <div class="track-number">@song.Number</div>
+                <div class="track-info">
+                    <img src="@song.CoverUrl" alt="@song.Title cover" />
+                    <div class="track-details">
+                        <div class="track-title">@song.Title</div>
+                        <div class="track-artist">@song.Artist</div>
+                    </div>
+                </div>
+                <div class="track-album">@song.Album</div>
+                <audio controls class="track-player">
+                    <source src="/audio/@(song.Title.ToLower().Replace(" ", "-")).mp3" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+                <div class="track-duration">@song.Duration</div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .music-player {
+        padding: 30px;
+        min-height: calc(100vh - var(--total-bottom-height));
+        background: var(--background-primary);
+    }
+
+    .player-header {
+        margin-bottom: 40px;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--text-secondary);
+        text-decoration: none;
+        margin-bottom: 20px;
+        transition: color 0.2s;
+    }
+
+    .back-link:hover {
+        color: var(--text-primary);
+    }
+
+    .player-header h1 {
+        font-size: 2.5rem;
+        margin: 0;
+        color: var(--text-primary);
+    }
+
+    .playlist-info {
+        margin-top: 10px;
+        color: var(--text-secondary);
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .tracks-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .track-row {
+        display: grid;
+        grid-template-columns: 50px 300px 200px 1fr 80px;
+        padding: 15px;
+        border-radius: 8px;
+        align-items: center;
+        gap: 20px;
+        background: var(--surface);
+        margin-bottom: 10px;
+        transition: background-color 0.2s;
+    }
+
+    .track-row:hover {
+        background: var(--background-secondary);
+    }
+
+    .track-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .track-info img {
+        width: 50px;
+        height: 50px;
+        border-radius: 5px;
+        object-fit: cover;
+    }
+
+    .track-details {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .track-title {
+        color: var(--text-primary);
+        font-weight: 500;
+    }
+
+    .track-artist {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+
+    .track-number {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+
+    .track-album {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+
+    .track-duration {
+        color: var(--text-secondary);
+        text-align: right;
+    }
+
+    .track-player {
+        width: 100%;
+        height: 35px;
+    }
+
+    audio::-webkit-media-controls-panel {
+        background-color: var(--surface);
+    }
+
+    audio::-webkit-media-controls-current-time-display,
+    audio::-webkit-media-controls-time-remaining-display {
+        color: var(--text-primary);
+    }
+
+    @@media (max-width: 992px) {
+        .track-row {
+            grid-template-columns: 40px 1fr 1fr 80px;
+        }
+
+        .track-album {
+            display: none;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .music-player {
+            padding: 20px;
+        }
+
+        .player-header h1 {
+            font-size: 2rem;
+        }
+
+        .track-row {
+            grid-template-columns: 30px 1fr 80px;
+        }
+
+        .track-player {
+            grid-column: 1 / -1;
+        }
+    }
+</style> 

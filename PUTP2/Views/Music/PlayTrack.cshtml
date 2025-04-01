@@ -1,0 +1,50 @@
+@{
+    ViewData["Title"] = "now playing";
+    ViewData["HidePlayerBar"] = true;
+}
+
+<div class="vinyl-player-container">
+    <div class="back-button">
+        <a href="javascript:history.back()" class="text-white">
+            <i class="fas fa-chevron-left"></i>
+        </a>
+    </div>
+
+    <div class="vinyl-record @(ViewBag.IsPlaying ? "spinning" : "")">
+        <div class="vinyl-disc">
+            <div class="vinyl-label">
+                <img src="@ViewBag.TrackImage" alt="Track Art" class="track-image" />
+            </div>
+        </div>
+        <div class="tonearm @(ViewBag.IsPlaying ? "playing" : "")"></div>
+    </div>
+
+    <div class="track-info text-center">
+        <h2 class="track-title">@ViewBag.TrackTitle</h2>
+        <p class="track-artist">@ViewBag.TrackArtist</p>
+    </div>
+
+    <div class="player-controls text-center">
+        <button class="btn btn-control" onclick="previousTrack()">
+            <i class="fas fa-step-backward"></i>
+        </button>
+        <button class="btn btn-control btn-play-large" onclick="togglePlay()">
+            <i class="fas @(ViewBag.IsPlaying ? "fa-pause" : "fa-play")"></i>
+        </button>
+        <button class="btn btn-control" onclick="nextTrack()">
+            <i class="fas fa-step-forward"></i>
+        </button>
+    </div>
+
+    <div class="track-options text-center">
+        <button class="btn btn-option">
+            <i class="fas fa-heart"></i>
+        </button>
+        <button class="btn btn-option">
+            <i class="fas fa-random"></i>
+        </button>
+        <button class="btn btn-option">
+            <i class="fas fa-redo"></i>
+        </button>
+    </div>
+</div> 
