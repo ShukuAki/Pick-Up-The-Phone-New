@@ -1,573 +1,298 @@
-@model PUTP2.Models.UploadViewModel
+@model List<PUTP2.Models.PlaylistInfo>
 
 @{
-    ViewData["Title"] = "upload";
+    ViewData["Title"] = "Upload";
+    var playlistId = Context.Request.Query["playlistId"].ToString();
 }
 
-<div class="upload-container">
-    <h1 class="upload-title">upload</h1>
+<div class="container">
+    <h2>Upload</h2>
+    <h3>Select Playlist</h3>
 
-    <div class="upload-content">
-        <div class="playlists-section">
-            <h2 class="section-title">select playlist</h2>
-            <div class="vinyl-covers-grid">
-                <a href="javascript:void(0)" onclick="showNewPlaylistForm()" class="vinyl-cover-link create-playlist">
-                    <div class="vinyl-cover">
-                        <div class="vinyl-disc"></div>
-                        <div class="cover-sleeve">
-                            <div class="playlist-info">
-                                <h2>Create New Playlist</h2>
-                                <p>Start a new collection</p>
-                            </div>
-                        </div>
+    <div class="playlists-grid">
+        @foreach (var playlist in Model)
+        {
+            <div class="playlist-card" data-playlist-id="@playlist.Id" onclick="selectPlaylist('@playlist.Id', '@playlist.Title')">
+                <div class="playlist-cover">
+                    <img src="@playlist.CoverUrl" alt="@playlist.Title">
                     </div>
-                </a>
-                @foreach (var playlist in Model.Playlists)
-                {
-                    <a href="javascript:void(0)" onclick="selectPlaylist('@playlist.Id')" class="vinyl-cover-link @(Model.SelectedPlaylistId == playlist.Id ? "selected" : "")">
-                        <div class="vinyl-cover">
-                            <div class="vinyl-disc"></div>
-                            <div class="cover-sleeve">
                                 <div class="playlist-info">
-                                    <h2>@playlist.Title</h2>
+                    <h4>@playlist.Title</h4>
                                     <p>@playlist.TrackCount tracks • @playlist.Duration</p>
                                 </div>
                             </div>
-                            <button class="delete-playlist-btn" onclick="deletePlaylist('@playlist.Id', event)">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </a>
                 }
             </div>
 
-            <div id="newPlaylistForm" class="form-container" style="display: none;">
-                <div class="form-header">
-                    <h2>Create New Playlist</h2>
-                    <button class="close-button" onclick="hideNewPlaylistForm()">
-                        <i class="fas fa-times"></i>
-                    </button>
+    <!-- Upload/Record Form Section (Initially Hidden) -->
+    <div id="uploadSection" class="upload-section mt-4" style="display: none;">
+        <div class="card bg-dark text-white">
+            <div class="card-body">
+                <h3>Add to <span id="selectedPlaylistName"></span></h3>
+                <input type="hidden" id="selectedPlaylistId" value="@playlistId" />
+                @Html.AntiForgeryToken()
+                
+                <!-- Recording Section -->
+                <div class="recording-section mb-4">
+                    <h4>Record Track</h4>
+                    <div class="form-group">
+                        <input type="text" class="form-control mb-2" id="recordingName" placeholder="Enter track name">
+                    </div>
+                    <div class="controls">
+                        <button id="startRecording" class="btn btn-primary">Start Recording</button>
+                        <button id="stopRecording" class="btn btn-danger" disabled>Stop Recording</button>
+                    </div>
+                    <div id="recordingStatus" class="mt-2"></div>
+                    <audio id="audioPlayback" controls style="display: none;" class="mt-2 w-100"></audio>
                 </div>
-                <form id="createPlaylistForm" method="post" enctype="multipart/form-data">
+
+                <hr class="border-secondary">
+
+                <!-- Upload Section -->
+                <div class="upload-section">
+                    <h4>Or Upload MP3</h4>
                     <div class="form-group">
-                        <label for="playlistTitle">Playlist Title</label>
-                        <input type="text" id="playlistTitle" name="title" required>
+                        <label for="trackFile">Select MP3 File:</label>
+                        <input type="file" class="form-control-file" id="trackFile" accept=".mp3" required>
                     </div>
+                    
                     <div class="form-group">
-                        <label for="playlistCover">Cover Image (Optional)</label>
-                        <input type="file" id="playlistCover" name="coverFile" accept="image/*">
+                        <label for="uploadTrackName">Track Name:</label>
+                        <input type="text" class="form-control" id="uploadTrackName" required>
                     </div>
-                    <button type="submit" class="submit-button">Create Playlist</button>
-                </form>
+
+                    <button onclick="uploadTrack()" class="btn btn-primary">Upload Track</button>
+                </div>
             </div>
-
-            @if (Model.IsPlaylistSelected)
-            {
-                <div class="options-section">
-                    <h2 class="section-title">upload options</h2>
-                    <div class="options-grid">
-                        <div class="option-card" onclick="showUploadForm()">
-                            <div class="option-icon">
-                                <i class="fas fa-file-upload"></i>
-                            </div>
-                            <h3>Upload Audio File</h3>
-                            <p>Upload an existing audio file</p>
-                        </div>
-                        <div class="option-card" onclick="showRecordForm()">
-                            <div class="option-icon">
-                                <i class="fas fa-microphone"></i>
-                            </div>
-                            <h3>Record Audio</h3>
-                            <p>Record audio directly</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="uploadForm" class="form-container" style="display: none;">
-                    <div class="form-header">
-                        <h2>Upload Audio File</h2>
-                        <button class="close-button" onclick="hideForms()">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                    <form method="post" enctype="multipart/form-data" asp-action="UploadFile" asp-controller="Music">
-                        <input type="hidden" name="playlistId" value="@Model.SelectedPlaylistId" />
-                        <div class="form-group">
-                            <label for="title">Track Title</label>
-                            <input type="text" id="title" name="title" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="artist">Artist</label>
-                            <input type="text" id="artist" name="artist" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="album">Album</label>
-                            <input type="text" id="album" name="album" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="audioFile">Audio File</label>
-                            <input type="file" id="audioFile" name="audioFile" accept="audio/*" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="coverFile">Cover Image (Optional)</label>
-                            <input type="file" id="coverFile" name="coverFile" accept="image/*">
-                        </div>
-                        <button type="submit" class="submit-button">Upload Track</button>
-                    </form>
-                </div>
-
-                <div id="recordForm" class="form-container" style="display: none;">
-                    <div class="form-header">
-                        <h2>Record Audio</h2>
-                        <button class="close-button" onclick="hideForms()">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                    <form method="post" asp-action="RecordAudio" asp-controller="Music">
-                        <input type="hidden" name="playlistId" value="@Model.SelectedPlaylistId" />
-                        <div class="form-group">
-                            <label for="recordTitle">Track Title</label>
-                            <input type="text" id="recordTitle" name="title" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="recordArtist">Artist</label>
-                            <input type="text" id="recordArtist" name="artist" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="recordAlbum">Album</label>
-                            <input type="text" id="recordAlbum" name="album" required>
-                        </div>
-                        <div class="form-group">
-                            <div class="recording-controls">
-                                <button type="button" id="startRecord" class="record-button">
-                                    <i class="fas fa-microphone"></i> Start Recording
-                                </button>
-                                <button type="button" id="stopRecord" class="record-button" style="display: none;">
-                                    <i class="fas fa-stop"></i> Stop Recording
-                                </button>
-                            </div>
-                            <div id="recordingStatus" class="recording-status" style="display: none;">
-                                <div class="recording-indicator"></div>
-                                <span>Recording in progress...</span>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="recordCoverFile">Cover Image (Optional)</label>
-                            <input type="file" id="recordCoverFile" name="coverFile" accept="image/*">
-                        </div>
-                        <button type="submit" class="submit-button" id="submitRecording" disabled>Save Recording</button>
-                    </form>
-                </div>
-            }
         </div>
     </div>
 </div>
 
-<form id="playlistForm" method="post" asp-action="SelectPlaylist" asp-controller="Music">
-    <input type="hidden" id="playlistId" name="playlistId" />
-    <input type="hidden" name="scroll" value="true" />
-</form>
-
-<script>
-    function selectPlaylist(id) {
-        document.getElementById('playlistId').value = id;
-        document.getElementById('playlistForm').submit();
-    }
-
-    // Handle scrolling after page load
-    document.addEventListener('DOMContentLoaded', function() {
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('scroll') === 'true') {
-            const optionsSection = document.querySelector('.options-section');
-            if (optionsSection) {
-                optionsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
+@section Styles {
+    <style>
+        /* Dark mode specific styles */
+        [data-theme="dark"] .playlist-card {
+            background: var(--bg-card);
         }
-    });
 
-    function showUploadForm() {
-        document.getElementById('uploadForm').style.display = 'block';
-        document.getElementById('recordForm').style.display = 'none';
-        document.getElementById('uploadForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+        [data-theme="dark"] .playlist-card:hover {
+            transform: scale(1.02);
+        }
 
-    function showRecordForm() {
-        document.getElementById('recordForm').style.display = 'block';
-        document.getElementById('uploadForm').style.display = 'none';
-        document.getElementById('recordForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+        [data-theme="dark"] .playlist-card.selected {
+            border: 2px solid var(--accent-color);
+        }
 
-    function hideForms() {
-        document.getElementById('uploadForm').style.display = 'none';
-        document.getElementById('recordForm').style.display = 'none';
-    }
+        [data-theme="dark"] .form-control {
+            background: var(--bg-secondary);
+            border-color: #333;
+            color: var(--text-primary);
+        }
 
-    function showNewPlaylistForm() {
-        document.getElementById('newPlaylistForm').style.display = 'block';
-        document.getElementById('newPlaylistForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+        [data-theme="dark"] .form-control:focus {
+            background: var(--bg-secondary);
+            border-color: var(--accent-color);
+            color: var(--text-primary);
+        }
 
-    function hideNewPlaylistForm() {
-        document.getElementById('newPlaylistForm').style.display = 'none';
-    }
+        [data-theme="dark"] .upload-section .card {
+            background: var(--bg-card);
+        }
 
-    // Handle new playlist creation
-    document.getElementById('createPlaylistForm')?.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(this);
-        
-        fetch('/Music/CreatePlaylist', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Create the new playlist HTML
-                const playlistHtml = `
-                    <a href="javascript:void(0)" onclick="selectPlaylist('${data.playlist.id}')" class="vinyl-cover-link">
-                        <div class="vinyl-cover">
-                            <div class="vinyl-disc"></div>
-                            <div class="cover-sleeve">
-                                <div class="playlist-info">
-                                    <h2>${data.playlist.title}</h2>
-                                    <p>${data.playlist.trackCount} tracks • ${data.playlist.duration}</p>
-                                </div>
-                            </div>
-                            <button class="delete-playlist-btn" onclick="deletePlaylist('${data.playlist.id}', event)">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </a>
-                `;
+        .playlists-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
 
-                // Insert the new playlist after the create playlist card
-                const createPlaylistCard = document.querySelector('.create-playlist');
-                const newPlaylistElement = document.createElement('div');
-                newPlaylistElement.innerHTML = playlistHtml;
-                createPlaylistCard.parentNode.insertBefore(newPlaylistElement.firstChild, createPlaylistCard.nextSibling);
+        .playlist-card {
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
 
-                // Clear the form and hide it
-                this.reset();
-                hideNewPlaylistForm();
+        .playlist-cover img {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+            border-radius: 4px;
+        }
 
-                // Show success message
-                showNotification('Playlist created successfully!', 'success');
-            } else {
-                showNotification('Error creating playlist: ' + data.message, 'error');
+        .playlist-info {
+            margin-top: 10px;
+        }
+
+        .upload-section {
+            max-width: 800px;
+            margin: 0 auto;
+            margin-bottom: 60px; /* Space for footer */
+        }
+
+        .recording-section, .upload-section {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        audio {
+            background: #1a1a1a;
+            border-radius: 4px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        #uploadRecording {
+            margin-left: auto;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        // Recording functionality
+        let mediaRecorder;
+        let audioChunks = [];
+        const startButton = document.getElementById('startRecording');
+        const stopButton = document.getElementById('stopRecording');
+        const audioPlayback = document.getElementById('audioPlayback');
+        const recordingStatus = document.getElementById('recordingStatus');
+
+        startButton.addEventListener('click', async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = (event) => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = async () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+                    audioPlayback.src = URL.createObjectURL(audioBlob);
+                    audioPlayback.style.display = 'block';
+
+                    // Auto upload the recording
+                    await uploadRecording(audioBlob);
+                };
+
+                mediaRecorder.start();
+                startButton.disabled = true;
+                stopButton.disabled = false;
+                recordingStatus.textContent = 'Recording...';
+            } catch (error) {
+                console.error('Error accessing microphone:', error);
+                alert('Error accessing microphone: ' + error.message);
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showNotification('Error creating playlist', 'error');
         });
-    });
 
-    // Recording functionality
-    let mediaRecorder;
-    let audioChunks = [];
-
-    document.getElementById('startRecord')?.addEventListener('click', async () => {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
-            audioChunks = [];
-
-            mediaRecorder.ondataavailable = (event) => {
-                audioChunks.push(event.data);
-            };
-
-            mediaRecorder.onstop = () => {
-                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                const formData = new FormData();
-                formData.append('audio', audioBlob);
-                formData.append('playlistId', '@Model.SelectedPlaylistId');
-                formData.append('title', document.getElementById('recordTitle').value);
-                formData.append('artist', document.getElementById('recordArtist').value);
-                formData.append('album', document.getElementById('recordAlbum').value);
-
-                // Send the recording to the server
-                fetch('/Music/RecordAudio', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Recording saved successfully!');
-                        hideForms();
-                    } else {
-                        alert('Error saving recording: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error saving recording');
-                });
-            };
-
-            mediaRecorder.start();
-            document.getElementById('startRecord').style.display = 'none';
-            document.getElementById('stopRecord').style.display = 'block';
-            document.getElementById('recordingStatus').style.display = 'block';
-            document.getElementById('submitRecording').disabled = true;
-        } catch (error) {
-            console.error('Error accessing microphone:', error);
-            alert('Error accessing microphone. Please ensure you have granted microphone permissions.');
-        }
-    });
-
-    document.getElementById('stopRecord')?.addEventListener('click', () => {
-        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        stopButton.addEventListener('click', () => {
             mediaRecorder.stop();
-            document.getElementById('startRecord').style.display = 'block';
-            document.getElementById('stopRecord').style.display = 'none';
-            document.getElementById('recordingStatus').style.display = 'none';
-            document.getElementById('submitRecording').disabled = false;
-        }
-    });
+            startButton.disabled = false;
+            stopButton.disabled = true;
+            recordingStatus.textContent = 'Recording stopped';
+        });
 
-    function deletePlaylist(playlistId, event) {
-        event.stopPropagation(); // Prevent playlist selection when clicking delete
-        
-        if (confirm('Are you sure you want to delete this playlist? This action cannot be undone.')) {
-            fetch('/Music/DeletePlaylist/' + playlistId, {
-                method: 'POST'
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Remove the playlist element from the DOM
-                    const playlistElement = event.target.closest('.vinyl-cover-link');
-                    playlistElement.remove();
-                    showNotification('Playlist deleted successfully!', 'success');
-                } else {
-                    showNotification('Error deleting playlist: ' + data.message, 'error');
+        // Upload recorded audio
+        async function uploadRecording(audioBlob) {
+            const trackName = document.getElementById('recordingName').value.trim();
+            const playlistId = document.getElementById('selectedPlaylistId').value;
+
+            if (!trackName) {
+                alert('Please enter a track name');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('trackFile', audioBlob, `${trackName}.mp3`);
+            formData.append('trackName', trackName);
+            formData.append('playlistId', playlistId);
+            formData.append('isRecording', 'true');
+
+            await uploadFile(formData);
+        }
+
+        // Upload MP3 file
+        async function uploadTrack() {
+            const fileInput = document.getElementById('trackFile');
+            const trackName = document.getElementById('uploadTrackName').value.trim();
+            const playlistId = document.getElementById('selectedPlaylistId').value;
+
+            if (!fileInput.files[0]) {
+                alert('Please select a file');
+                return;
+            }
+
+            if (!trackName) {
+                alert('Please enter a track name');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('trackFile', fileInput.files[0]);
+            formData.append('trackName', trackName);
+            formData.append('playlistId', playlistId);
+            formData.append('isRecording', 'false');
+
+            await uploadFile(formData);
+        }
+
+        // Common upload function
+        async function uploadFile(formData) {
+            try {
+                // Get the antiforgery token
+                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                
+                const response = await fetch('/Music/UploadTrack', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'RequestVerificationToken': token
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showNotification('Error deleting playlist', 'error');
+
+                const result = await response.json();
+                if (result.success) {
+                    alert('Track uploaded successfully!');
+                    // Redirect back to the playlist
+                    const playlistId = document.getElementById('selectedPlaylistId').value;
+                    window.location.href = `/Music/Playlist/${playlistId}`;
+                } else {
+                    alert('Error uploading track: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                alert('Error uploading track: ' + error.message);
+            }
+        }
+
+        function selectPlaylist(playlistId, playlistName) {
+            // Remove selected class from all playlist cards
+            document.querySelectorAll('.playlist-card').forEach(card => {
+                card.classList.remove('selected');
             });
+
+            // Add selected class to clicked playlist
+            const selectedCard = document.querySelector(`[data-playlist-id="${playlistId}"]`);
+            selectedCard.classList.add('selected');
+
+            // Show and update upload section
+            document.getElementById('selectedPlaylistId').value = playlistId;
+            document.getElementById('selectedPlaylistName').textContent = playlistName;
+            document.getElementById('uploadSection').style.display = 'block';
+
+            // Scroll to upload section smoothly
+            document.getElementById('uploadSection').scrollIntoView({ behavior: 'smooth' });
         }
-    }
-
-    function showNotification(message, type) {
-        const notification = document.createElement('div');
-        notification.className = `notification ${type}`;
-        notification.textContent = message;
-        
-        document.body.appendChild(notification);
-        
-        // Remove notification after 3 seconds
-        setTimeout(() => {
-            notification.remove();
-        }, 3000);
-    }
-
-    // Add this CSS to your existing styles
-    const style = document.createElement('style');
-    style.textContent = `
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 25px;
-            border-radius: 5px;
-            color: white;
-            font-weight: 500;
-            z-index: 1000;
-            animation: slideIn 0.3s ease-out;
-        }
-
-        .notification.success {
-            background-color: #4CAF50;
-        }
-
-        .notification.error {
-            background-color: #f44336;
-        }
-
-        @@keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-    `;
-    document.head.appendChild(style);
-</script>
-
-<style>
-    .form-container {
-        background: var(--surface);
-        border-radius: 8px;
-        padding: 20px;
-        margin-top: 20px;
-        border: 1px solid var(--border);
-    }
-
-    .form-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
-    }
-
-    .close-button {
-        background: none;
-        border: none;
-        color: var(--text-secondary);
-        font-size: 1.2rem;
-        cursor: pointer;
-        padding: 5px;
-        transition: color 0.2s ease;
-    }
-
-    .close-button:hover {
-        color: var(--text-primary);
-    }
-
-    .form-group {
-        margin-bottom: 20px;
-    }
-
-    .form-group label {
-        display: block;
-        margin-bottom: 5px;
-        color: var(--text-secondary);
-    }
-
-    .form-group input[type="text"],
-    .form-group input[type="file"] {
-        width: 100%;
-        padding: 8px;
-        border: 1px solid var(--border);
-        border-radius: 4px;
-        background: var(--background-primary);
-        color: var(--text-primary);
-    }
-
-    .recording-controls {
-        display: flex;
-        gap: 10px;
-    }
-
-    .record-button {
-        padding: 10px 20px;
-        border: none;
-        border-radius: 4px;
-        background: var(--accent);
-        color: white;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        transition: background-color 0.2s ease;
-    }
-
-    .record-button:hover {
-        background: var(--accent-hover);
-    }
-
-    .recording-status {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-top: 10px;
-        color: var(--accent);
-    }
-
-    .recording-indicator {
-        width: 12px;
-        height: 12px;
-        background: var(--accent);
-        border-radius: 50%;
-        animation: pulse 1.5s infinite;
-    }
-
-    @@keyframes pulse {
-        0% { opacity: 1; }
-        50% { opacity: 0.5; }
-        100% { opacity: 1; }
-    }
-
-    .submit-button {
-        width: 100%;
-        padding: 12px;
-        border: none;
-        border-radius: 4px;
-        background: var(--accent);
-        color: white;
-        cursor: pointer;
-        transition: background-color 0.2s ease;
-    }
-
-    .submit-button:hover {
-        background: var(--accent-hover);
-    }
-
-    .submit-button:disabled {
-        background: var(--text-secondary);
-        cursor: not-allowed;
-    }
-
-    .create-playlist .vinyl-cover {
-        border: 2px dashed var(--border);
-        background: var(--background-primary);
-    }
-
-    .create-playlist .vinyl-disc {
-        background: var(--accent);
-        opacity: 0.1;
-    }
-
-    .create-playlist .playlist-info h2 {
-        color: var(--accent);
-    }
-
-    .create-playlist:hover .vinyl-cover {
-        border-color: var(--accent);
-        transform: translateX(-20px);
-    }
-
-    .create-playlist:active .vinyl-cover {
-        transform: translateX(-10px);
-    }
-
-    .delete-playlist-btn {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        background: rgba(255, 0, 0, 0.8);
-        color: white;
-        border: none;
-        border-radius: 50%;
-        width: 30px;
-        height: 30px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        opacity: 0;
-        transition: opacity 0.2s ease, background-color 0.2s ease;
-        z-index: 2;
-    }
-
-    .vinyl-cover:hover .delete-playlist-btn {
-        opacity: 1;
-    }
-
-    .delete-playlist-btn:hover {
-        background: rgba(255, 0, 0, 1);
-    }
-
-    .delete-playlist-btn i {
-        font-size: 14px;
-    }
-</style> 
+    </script>
+} 

@@ -1,0 +1,142 @@
+@page
+@model UploadModel
+@{
+    ViewData["Title"] = "Upload";
+    var playlistId = Request.Query["playlistId"].ToString();
+}
+
+<div class="container">
+    <input type="hidden" id="playlistId" value="@playlistId" />
+
+    <div class="recording-section mb-4">
+        <h3>Record Track</h3>
+        <div class="form-group">
+            <input type="text" class="form-control mb-2" id="recordingName" placeholder="Enter track name">
+        </div>
+        <div class="controls">
+            <button id="startRecording" class="btn btn-primary">Start Recording</button>
+            <button id="stopRecording" class="btn btn-danger" disabled>Stop Recording</button>
+        </div>
+        <div id="recordingStatus" class="mt-2"></div>
+        <audio id="audioPlayback" controls style="display: none;" class="mt-2"></audio>
+    </div>
+
+    <div class="upload-section mt-4">
+        <h3>Or Upload MP3</h3>
+        <form id="uploadForm" method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="playlistId" value="@playlistId" />
+            
+            <div class="form-group">
+                <label for="trackFile">Select MP3 File:</label>
+                <input type="file" class="form-control-file" id="trackFile" name="trackFile" accept=".mp3" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="trackName">Track Name:</label>
+                <input type="text" class="form-control" id="trackName" name="trackName" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Upload Track</button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let mediaRecorder;
+        let audioChunks = [];
+        const playlistId = document.getElementById('playlistId').value;
+        
+        // Recording functionality
+        document.getElementById('startRecording').addEventListener('click', async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = (event) => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = async () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    const audio = document.getElementById('audioPlayback');
+                    audio.src = audioUrl;
+                    audio.style.display = 'block';
+
+                    // Create form data for upload
+                    const formData = new FormData();
+                    formData.append('audioFile', audioBlob, 'recording.mp3');
+                    formData.append('trackName', document.getElementById('recordingName').value || 'Voice Recording');
+                    formData.append('playlistId', playlistId);
+
+                    try {
+                        const response = await fetch('?handler=SaveRecording', {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                            }
+                        });
+
+                        const result = await response.json();
+                        if (result.success) {
+                            document.getElementById('recordingStatus').textContent = 'Recording saved successfully!';
+                            // Optionally refresh the current page to show the new recording
+                            // window.location.reload();
+                        } else {
+                            throw new Error(result.message);
+                        }
+                    } catch (error) {
+                        document.getElementById('recordingStatus').textContent = 'Error saving recording: ' + error.message;
+                    }
+                };
+
+                mediaRecorder.start();
+                document.getElementById('startRecording').disabled = true;
+                document.getElementById('stopRecording').disabled = false;
+                document.getElementById('recordingStatus').textContent = 'Recording in progress...';
+            } catch (error) {
+                document.getElementById('recordingStatus').textContent = 'Error accessing microphone: ' + error.message;
+            }
+        });
+
+        document.getElementById('stopRecording').addEventListener('click', () => {
+            mediaRecorder.stop();
+            mediaRecorder.stream.getTracks().forEach(track => track.stop());
+            document.getElementById('startRecording').disabled = false;
+            document.getElementById('stopRecording').disabled = true;
+            document.getElementById('recordingStatus').textContent = 'Recording stopped';
+        });
+
+        // File upload functionality
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            
+            try {
+                const response = await fetch('?handler=UploadTrack', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    }
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert('Track uploaded successfully!');
+                    // Optionally refresh the current page to show the new track
+                    // window.location.reload();
+                } else {
+                    alert('Error uploading track: ' + result.message);
+                }
+            } catch (error) {
+                alert('Error uploading track: ' + error);
+            }
+        });
+    </script>
+} 

@@ -1,97 +1,412 @@
+@using System.IO
 @model PUTP2.Models.PlaylistViewModel
 
 @{
-    ViewData["Title"] = Model.Title;
+    ViewData["Title"] = Model.Playlist.Title;
 }
 
-<div class="playlist-container">
+<div class="container">
     <div class="playlist-header">
-        <div class="playlist-info">
-            <h1>@Model.Title</h1>
-            <p>@Model.TrackCount tracks • @Model.Duration</p>
-        </div>
-        <div class="playlist-actions">
-            <button class="delete-playlist-btn" onclick="deletePlaylist('@Model.Id')">
-                <i class="fas fa-trash"></i> Delete Playlist
-            </button>
+        <div class="row align-items-center">
+            <div class="col-md-3">
+                <img src="@Model.Playlist.CoverUrl" alt="@Model.Playlist.Title" class="playlist-cover-large">
+            </div>
+            <div class="col-md-9">
+                <h1 class="text-white">@Model.Playlist.Title</h1>
+                <p class="text-muted">@Model.Playlist.TrackCount tracks • @Model.Playlist.Duration</p>
+                <a href="@Url.Action("Upload", "Music", new { playlistId = Model.Playlist.Id })" class="btn btn-primary">
+                    Add Tracks
+                </a>
+            </div>
         </div>
     </div>
 
-    <div class="tracks-list">
-        @if (Model.Tracks.Count == 0)
+    <div class="tracks-list mt-4">
+        @if (Model.Tracks.Any())
         {
-            <div class="empty-playlist">
-                <i class="fas fa-music"></i>
-                <p>No tracks yet. Add some music to get started!</p>
-                <a asp-controller="Music" asp-action="Upload" class="add-tracks-btn">Add Tracks</a>
+            <div class="table-responsive">
+                <table class="table table-dark table-hover">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Title</th>
+                            <th>Duration</th>
+                            <th>Upload Date</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (int i = 0; i < Model.Tracks.Count; i++)
+                        {
+                            var track = Model.Tracks[i];
+                            <tr class="track-row @(i == 0 ? "first-track" : "")" data-track-id="@track.Id">
+                                <td>@(i + 1)</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <button class="btn btn-link play-button" 
+                                                onclick="playTrack('@track.Id', '@track.Name', '@track.FilePath')">
+                                            <i class="fas fa-play play-icon"></i>
+                                            <i class="fas fa-pause pause-icon" style="display: none;"></i>
+                                        </button>
+                                        <span>@track.Name</span>
+                                    </div>
+                                </td>
+                                <td>@track.Duration</td>
+                                <td>@track.UploadDate.ToString("MMM dd, yyyy")</td>
+                                <td>
+                                    <button class="btn btn-sm btn-danger" 
+                                            onclick="deleteTrack('@track.Id', '@Model.Playlist.Id')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Audio Player (above footer) -->
+            <div id="audioPlayerContainer" class="spotify-player" style="display: none;">
+                <div class="player-progress">
+                    <div id="progressBar" class="progress-bar"></div>
+                </div>
+                <div class="player-content">
+                    <div class="container-fluid">
+                        <div class="row align-items-center">
+                            <div class="col-md-3 now-playing">
+                                <div class="d-flex align-items-center">
+                                    <div class="track-info">
+                                        <span id="currentTrackName" class="track-name"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 text-center">
+                                <div class="player-controls">
+                                    <button class="control-button" onclick="previousTrack()">
+                                        <i class="fas fa-step-backward"></i>
+                                    </button>
+                                    <button class="control-button play-pause" id="playPauseMain">
+                                        <i class="fas fa-play"></i>
+                                    </button>
+                                    <button class="control-button" onclick="nextTrack()">
+                                        <i class="fas fa-step-forward"></i>
+                                    </button>
+                                </div>
+                                <div class="playback-bar">
+                                    <span id="currentTime" class="time">0:00</span>
+                                    <audio id="audioPlayer" class="d-none">
+                                        Your browser does not support the audio element.
+                                    </audio>
+                                    <span id="duration" class="time">0:00</span>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="volume-control">
+                                    <i class="fas fa-volume-up"></i>
+                                    <input type="range" id="volumeSlider" min="0" max="100" value="100">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         }
         else
         {
-            foreach (var track in Model.Tracks)
-            {
-                <div class="track-item">
-                    <div class="track-info">
-                        <div class="track-cover">
-                            <img src="@track.CoverUrl" alt="@track.Title">
-                        </div>
-                        <div class="track-details">
-                            <h3>@track.Title</h3>
-                            <p class="artist">@track.Artist</p>
-                            <p class="album">@track.Album</p>
-                        </div>
-                    </div>
-                    <div class="track-controls">
-                        <span class="duration">@track.Duration</span>
-                        <button class="play-button" onclick="playTrack(@track.Id)">
-                            <i class="fas fa-play"></i>
-                        </button>
-                    </div>
-                </div>
-            }
+            <div class="text-center text-muted my-5">
+                <h3>No tracks in this playlist</h3>
+                <p>Add some tracks to get started!</p>
+                <a href="@Url.Action("Upload", "Music", new { playlistId = Model.Playlist.Id })" class="btn btn-primary">
+                    Add Tracks
+                </a>
+            </div>
         }
     </div>
 </div>
 
+@section Styles {
+    <style>
+        .playlist-header {
+            padding: 30px;
+            background: #1a1a1a;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .playlist-cover-large {
+            width: 100%;
+            max-width: 300px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .table {
+            background: #2a2a2a;
+            border-radius: 8px;
+        }
+
+        .track-row {
+            cursor: pointer;
+        }
+
+        .track-row:hover {
+            background: #333333 !important;
+        }
+
+        .track-row.playing {
+            background: #383838 !important;
+        }
+
+        .play-button {
+            color: #1db954;
+            padding: 5px 10px;
+        }
+
+        .spotify-player {
+            position: fixed;
+            bottom: 60px; /* Height of your footer */
+            left: 0;
+            right: 0;
+            background-color: #181818;
+            border-top: 1px solid #282828;
+            z-index: 1000;
+        }
+
+        .player-progress {
+            width: 100%;
+            height: 4px;
+            background-color: #4f4f4f;
+            cursor: pointer;
+        }
+
+        .player-progress .progress-bar {
+            height: 100%;
+            background-color: #1db954;
+            width: 0;
+            transition: width 0.1s linear;
+        }
+
+        .player-content {
+            padding: 16px 0;
+        }
+
+        .now-playing {
+            padding: 0 16px;
+        }
+
+        .track-info {
+            margin-left: 12px;
+        }
+
+        .track-name {
+            color: #ffffff;
+            font-size: 14px;
+            margin: 0;
+            display: block;
+        }
+
+        .player-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            margin-bottom: 12px;
+        }
+
+        .control-button {
+            background: none;
+            border: none;
+            color: #b3b3b3;
+            cursor: pointer;
+            padding: 0;
+            font-size: 16px;
+            transition: color 0.2s;
+        }
+
+        .control-button:hover {
+            color: #ffffff;
+        }
+
+        .play-pause {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #ffffff;
+            color: #000000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .play-pause:hover {
+            transform: scale(1.1);
+            color: #000000;
+        }
+
+        .playback-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: #b3b3b3;
+            font-size: 12px;
+        }
+
+        .time {
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .volume-control {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+            padding-right: 16px;
+            color: #b3b3b3;
+        }
+
+        #volumeSlider {
+            width: 100px;
+            height: 4px;
+            -webkit-appearance: none;
+            background: #4f4f4f;
+            border-radius: 2px;
+        }
+
+        #volumeSlider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            background: #ffffff;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        #volumeSlider:hover::-webkit-slider-thumb {
+            background: #1db954;
+        }
+
+        /* Ensure content doesn't get hidden behind the player */
+        .container {
+            padding-bottom: 120px;
+        }
+    </style>
+}
+
 @section Scripts {
     <script>
-        function deletePlaylist(playlistId) {
-            if (confirm('Are you sure you want to delete this playlist? This action cannot be undone.')) {
-                fetch('/Music/DeletePlaylist/' + playlistId, {
-                    method: 'POST'
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        window.location.href = '/Music/Index';
-                    } else {
-                        alert('Error deleting playlist: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error deleting playlist');
+        let currentTrackId = null;
+
+        function playTrack(trackId, trackName, filePath) {
+            const audioPlayer = document.getElementById('audioPlayer');
+            const playerContainer = document.getElementById('audioPlayerContainer');
+            const trackNameElement = document.getElementById('currentTrackName');
+            
+            // Update track rows
+            document.querySelectorAll('.track-row').forEach(row => {
+                row.classList.remove('playing');
+                row.querySelector('.play-icon').style.display = 'inline';
+                row.querySelector('.pause-icon').style.display = 'none';
+            });
+
+            if (currentTrackId === trackId && !audioPlayer.paused) {
+                // Pause current track
+                audioPlayer.pause();
+                return;
+            }
+
+            // Update current track
+            currentTrackId = trackId;
+
+            // Update UI
+            const currentRow = document.querySelector(`[data-track-id="${trackId}"]`);
+            currentRow.classList.add('playing');
+            currentRow.querySelector('.play-icon').style.display = 'none';
+            currentRow.querySelector('.pause-icon').style.display = 'inline';
+
+            // Update player
+            audioPlayer.src = filePath;
+            trackNameElement.textContent = trackName;
+            playerContainer.style.display = 'block';
+            
+            // Play audio
+            audioPlayer.play().catch(error => {
+                console.error('Error playing audio:', error);
+            });
+        }
+
+        // Delete track function
+        async function deleteTrack(trackId, playlistId) {
+            if (!confirm('Are you sure you want to delete this track?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/Music/DeleteTrack', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify({ trackId, playlistId })
                 });
+
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert('Error deleting track');
+                }
+            } catch (error) {
+                alert('Error deleting track: ' + error);
             }
         }
 
-        function playTrack(trackId) {
-            fetch('/Music/Play/' + trackId)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Update player with track info
-                        document.getElementById('currentTrackName').textContent = data.track.title;
-                        document.getElementById('currentArtistName').textContent = data.track.artist;
-                        document.getElementById('currentTrackImage').src = data.track.coverUrl;
-                        
-                        // Enable player controls
-                        enablePlayerControls();
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                });
+        function updateProgress() {
+            const audioPlayer = document.getElementById('audioPlayer');
+            const progressBar = document.querySelector('.progress-bar');
+            const currentTimeEl = document.getElementById('currentTime');
+            const durationEl = document.getElementById('duration');
+
+            if (audioPlayer.duration) {
+                const progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+                progressBar.style.width = `${progress}%`;
+                currentTimeEl.textContent = formatTime(audioPlayer.currentTime);
+                durationEl.textContent = formatTime(audioPlayer.duration);
+            }
         }
+
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = Math.floor(seconds % 60);
+            return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const audioPlayer = document.getElementById('audioPlayer');
+            const volumeSlider = document.getElementById('volumeSlider');
+            const progressBar = document.querySelector('.player-progress');
+
+            audioPlayer.addEventListener('timeupdate', updateProgress);
+
+            volumeSlider.addEventListener('input', (e) => {
+                audioPlayer.volume = e.target.value / 100;
+            });
+
+            progressBar.addEventListener('click', (e) => {
+                const rect = progressBar.getBoundingClientRect();
+                const pos = (e.clientX - rect.left) / rect.width;
+                audioPlayer.currentTime = pos * audioPlayer.duration;
+            });
+
+            audioPlayer.addEventListener('play', () => {
+                document.getElementById('playPauseMain').innerHTML = '<i class="fas fa-pause"></i>';
+            });
+
+            audioPlayer.addEventListener('pause', () => {
+                document.getElementById('playPauseMain').innerHTML = '<i class="fas fa-play"></i>';
+            });
+        });
     </script>
 } 

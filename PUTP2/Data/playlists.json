@@ -1,10 +1,19 @@
 [
   {
     "Id": "3",
-    "Title": "message to your (future) grandchildren",
+    "Title": "test",
     "CoverUrl": "/images/default-playlist.jpg",
-    "TrackCount": 0,
+    "Tracks": [
+      "3a5a8e30-6c8a-476d-aa73-091f4d89d5c0",
+      "92aa6c75-3efa-41b5-ab3c-e82f8d5f6097",
+      "13a7182c-6472-410e-b3d4-470719e42635",
+      "5ec30042-5246-4cd0-92af-0a834f0dd093",
+      "f9ca3f85-c63f-4345-8d92-8a9f7c8e3698",
+      "4abd8130-2102-4caa-9bf1-3fb6967192bc"
+    ],
+    "TrackCount": 6,
     "Duration": "0:00",
-    "Action": "Playlist3"
+    "Action": null,
+    "CreatedDate": "0001-01-01T00:00:00"
   }
 ]
