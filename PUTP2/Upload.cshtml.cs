@@ -5,6 +5,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Http;
+using PUTP2.Models;
 
 public class UploadModel : PageModel
 {
@@ -12,9 +13,20 @@ public class UploadModel : PageModel
     private readonly string tracksJsonPath = Path.Combine("Data", "tracks.json");
     private readonly string playlistsPath = Path.Combine("Data", "playlists.json");
     private readonly string playlistCoversPath = Path.Combine("wwwroot", "images", "playlist-covers");
-
+    private const string PlaylistFileName = "wwwroot/data/playlists.json";
+    private readonly IWebHostEnvironment _env;
     public void OnGet()
     {
+        var path = Path.Combine(_env.ContentRootPath, PlaylistFileName);
+        if (System.IO.File.Exists(path))
+        {
+            var json = System.IO.File.ReadAllText(path);
+            Playlists = JsonSerializer.Deserialize<List<PlaylistInfo>>(json);
+        }
+        else
+        {
+            Playlists = new List<PlaylistInfo>();
+        }   
     }
 
     public async Task<IActionResult> OnPostUploadTrackAsync()
@@ -209,8 +221,65 @@ public class UploadModel : PageModel
             return new JsonResult(new { success = false, message = ex.Message });
         }
     }
+
+    public UploadModel(IWebHostEnvironment env)
+    {
+        _env = env;
+    }
+
+    [BindProperty]
+    public List<PlaylistInfo> Playlists { get; set; }
+
+
+    public class CreatePlaylistRequest
+    {
+        public string Title { get; set; }
+    }
+
+    public IActionResult OnPostCreatePlaylist([FromBody] CreatePlaylistRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Title))
+        {
+            return new JsonResult(new { success = false, message = "Title is required." });
+        }
+
+        var path = Path.Combine(_env.ContentRootPath, PlaylistFileName);
+        var playlists = new List<PlaylistInfo>();
+
+        if (System.IO.File.Exists(path))
+        {
+            var json = System.IO.File.ReadAllText(path);
+            playlists = JsonSerializer.Deserialize<List<PlaylistInfo>>(json);
+        }
+
+        var newId = (playlists.Any() ? playlists.Max(p => int.Parse(p.Id)) + 1 : 1).ToString();
+
+        var newPlaylist = new PlaylistInfo
+        {
+            Id = newId,
+            Title = request.Title,
+            CoverUrl = "/images/default-playlist.jpg",
+            TrackCount = 0,
+            Duration = "0:00",
+            Action = null,
+            CreatedDate = DateTime.UtcNow
+        };
+
+        playlists.Add(newPlaylist);
+        var updatedJson = JsonSerializer.Serialize(playlists, new JsonSerializerOptions { WriteIndented = true });
+        System.IO.File.WriteAllText(path, updatedJson);
+
+        return new JsonResult(new { success = true });
+    }
+
+
 }
 
+
+public class PlaylistCreateRequest
+{
+    public string Title { get; set; }
+}
 public class TrackInfo
 {
     public string Id { get; set; }

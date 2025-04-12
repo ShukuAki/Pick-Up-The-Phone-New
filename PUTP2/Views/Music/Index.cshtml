@@ -12,17 +12,22 @@
         {
             @foreach (var playlist in ViewBag.Playlists)
             {
-                <a asp-controller="Music" asp-action="Playlist" asp-route-id="@playlist.Id" class="vinyl-cover-link">
-                    <div class="vinyl-cover">
-                        <div class="vinyl-disc"></div>
-                        <div class="cover-sleeve">
-                            <div class="playlist-info">
-                                <h2>@playlist.Title</h2>
-                                <p>@playlist.TrackCount tracks • @playlist.Duration</p>
+                <div class="vinyl-cover-container">
+                    <a asp-controller="Music" asp-action="Playlist" asp-route-id="@playlist.Id" class="vinyl-cover-link">
+                        <div class="vinyl-cover">
+                            <div class="vinyl-disc"></div>
+                            <div class="cover-sleeve">
+                                <div class="playlist-info">
+                                    <h2>@playlist.Title</h2>
+                                    <p>@playlist.TrackCount tracks • @playlist.Duration</p>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </a>
+                    </a>
+                    <button class="delete-playlist-btn" onclick="deletePlaylist('@playlist.Id', '@playlist.Title')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
             }
         }
         else
@@ -36,6 +41,96 @@
     </div>
 </div>
 
+@section Styles {
+    <style>
+        .vinyl-cover-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .delete-playlist-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 0, 0, 0.7);
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+        }
+
+        .vinyl-cover-container:hover .delete-playlist-btn {
+            opacity: 1;
+        }
+
+        .delete-playlist-btn:hover {
+            background: rgba(255, 0, 0, 0.9);
+        }
+
+        .delete-playlist-btn i {
+            font-size: 14px;
+        }
+
+        /* Confirmation Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--bg-card);
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-buttons button {
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .confirm-delete {
+            background: #dc3545;
+            color: white;
+            border: none;
+        }
+
+        .cancel-delete {
+            background: #6c757d;
+            color: white;
+            border: none;
+        }
+    </style>
+}
+
 @section Scripts {
     <script>
         function playPlaylist(id) {
@@ -46,5 +141,74 @@
             document.getElementById('currentTrackName').textContent = 'Playing from playlist';
             document.getElementById('currentArtistName').textContent = `Playlist ${id}`;
         }
+
+        // Delete playlist functionality
+        function deletePlaylist(id, title) {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <h3>Delete Playlist</h3>
+                    <p>Are you sure you want to delete "${title}"?</p>
+                    <p>This action cannot be undone.</p>
+                    <div class="modal-buttons">
+                        <button class="confirm-delete" onclick="confirmDelete('${id}')">Delete</button>
+                        <button class="cancel-delete" onclick="closeModal()">Cancel</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.style.display = 'block';
+        }
+
+        function closeModal() {
+            const modal = document.querySelector('.modal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        async function confirmDelete(id) {
+            try {
+                const response = await fetch(`/Music/DeletePlaylist?id=${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    // Remove the playlist card from the DOM
+                    const playlistCard = document.querySelector(`[data-playlist-id="${id}"]`);
+                    if (playlistCard) {
+                        playlistCard.remove();
+                    }
+                    
+                    // Show success message
+                    alert('Playlist deleted successfully!');
+                    
+                    // Reload the page if no playlists are left
+                    const remainingPlaylists = document.querySelectorAll('.vinyl-cover-container').length;
+                    if (remainingPlaylists === 0) {
+                        window.location.reload();
+                    }
+                } else {
+                    alert('Error deleting playlist: ' + result.message);
+                }
+            } catch (error) {
+                alert('Error deleting playlist: ' + error.message);
+            } finally {
+                closeModal();
+            }
+        }
+
+        // Close modal when clicking outside
+        document.addEventListener('click', function(event) {
+            const modal = document.querySelector('.modal');
+            if (modal && event.target === modal) {
+                closeModal();
+            }
+        });
     </script>
 } 

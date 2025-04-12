@@ -10,19 +10,40 @@
     <h3>Select Playlist</h3>
 
     <div class="playlists-grid">
+        <!-- Create Playlist Card -->
+        <div class="playlist-card create-playlist-card">
+            <div class="playlist-cover">
+                <img src="/images/default-playlist.jpg" alt="New Playlist">
+            </div>
+            <div class="playlist-info">
+                <form id="createPlaylistForm" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <input type="text" id="title" name="title" class="form-control" placeholder="Enter playlist title" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="file" id="coverFile" name="coverFile" class="form-control" accept="image/*">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Create Playlist</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Display Success or Error Messages -->
+        <div id="createPlaylistMessage"></div>
+
         @foreach (var playlist in Model)
         {
             <div class="playlist-card" data-playlist-id="@playlist.Id" onclick="selectPlaylist('@playlist.Id', '@playlist.Title')">
                 <div class="playlist-cover">
                     <img src="@playlist.CoverUrl" alt="@playlist.Title">
-                    </div>
-                                <div class="playlist-info">
+                </div>
+                <div class="playlist-info">
                     <h4>@playlist.Title</h4>
-                                    <p>@playlist.TrackCount tracks • @playlist.Duration</p>
-                                </div>
-                            </div>
-                }
+                    <p>@playlist.TrackCount tracks • @playlist.Duration</p>
+                </div>
             </div>
+        }
+    </div>
 
     <!-- Upload/Record Form Section (Initially Hidden) -->
     <div id="uploadSection" class="upload-section mt-4" style="display: none;">
@@ -111,6 +132,11 @@
             padding: 15px;
             cursor: pointer;
             transition: transform 0.2s;
+            background: #2a2a2a;
+        }
+
+        .playlist-card:hover {
+            transform: scale(1.02);
         }
 
         .playlist-cover img {
@@ -124,10 +150,24 @@
             margin-top: 10px;
         }
 
+        .create-playlist-card {
+            background: var(--bg-card);
+            border: 2px dashed var(--accent-color);
+        }
+
+        .create-playlist-card .form-group {
+            margin-bottom: 10px;
+        }
+
+        .create-playlist-card button {
+            width: 100%;
+            margin-top: 10px;
+        }
+
         .upload-section {
             max-width: 800px;
             margin: 0 auto;
-            margin-bottom: 60px; /* Space for footer */
+            margin-bottom: 60px;
         }
 
         .recording-section, .upload-section {
@@ -155,6 +195,33 @@
 
 @section Scripts {
     <script>
+        // Handle form submission
+        document.getElementById("createPlaylistForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+
+            var formData = new FormData();
+            formData.append("title", document.getElementById("title").value);
+            formData.append("coverFile", document.getElementById("coverFile").files[0]);
+
+            fetch("/Music/CreatePlaylist", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById("createPlaylistMessage").innerHTML = "<div class='alert alert-success'>Playlist created successfully!</div>";
+                    // Reload the page to show the new playlist
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    document.getElementById("createPlaylistMessage").innerHTML = "<div class='alert alert-danger'>" + data.message + "</div>";
+                }
+            })
+            .catch(error => {
+                document.getElementById("createPlaylistMessage").innerHTML = "<div class='alert alert-danger'>Error: " + error.message + "</div>";
+            });
+        });
+
         // Recording functionality
         let mediaRecorder;
         let audioChunks = [];
@@ -210,89 +277,66 @@
             }
 
             const formData = new FormData();
-            formData.append('trackFile', audioBlob, `${trackName}.mp3`);
+            formData.append('audioFile', audioBlob, 'recording.mp3');
             formData.append('trackName', trackName);
             formData.append('playlistId', playlistId);
-            formData.append('isRecording', 'true');
 
-            await uploadFile(formData);
+            try {
+                const response = await fetch('/Music/SaveRecording', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert('Recording uploaded successfully!');
+                } else {
+                    alert('Error uploading recording: ' + result.message);
+                }
+            } catch (error) {
+                alert('Error uploading recording: ' + error.message);
+            }
         }
 
-        // Upload MP3 file
+        function selectPlaylist(id, title) {
+            document.getElementById('selectedPlaylistId').value = id;
+            document.getElementById('selectedPlaylistName').textContent = title;
+            document.getElementById('uploadSection').style.display = 'block';
+            
+            // Scroll to upload section
+            document.getElementById('uploadSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
         async function uploadTrack() {
-            const fileInput = document.getElementById('trackFile');
+            const trackFile = document.getElementById('trackFile').files[0];
             const trackName = document.getElementById('uploadTrackName').value.trim();
             const playlistId = document.getElementById('selectedPlaylistId').value;
 
-            if (!fileInput.files[0]) {
-                alert('Please select a file');
-                return;
-            }
-
-            if (!trackName) {
-                alert('Please enter a track name');
+            if (!trackFile || !trackName || !playlistId) {
+                alert('Please fill in all fields');
                 return;
             }
 
             const formData = new FormData();
-            formData.append('trackFile', fileInput.files[0]);
+            formData.append('trackFile', trackFile);
             formData.append('trackName', trackName);
             formData.append('playlistId', playlistId);
-            formData.append('isRecording', 'false');
 
-            await uploadFile(formData);
-        }
-
-        // Common upload function
-        async function uploadFile(formData) {
             try {
-                // Get the antiforgery token
-                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
-                
                 const response = await fetch('/Music/UploadTrack', {
                     method: 'POST',
-                    body: formData,
-                    headers: {
-                        'RequestVerificationToken': token
-                    }
+                    body: formData
                 });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
 
                 const result = await response.json();
                 if (result.success) {
                     alert('Track uploaded successfully!');
-                    // Redirect back to the playlist
-                    const playlistId = document.getElementById('selectedPlaylistId').value;
-                    window.location.href = `/Music/Playlist/${playlistId}`;
                 } else {
                     alert('Error uploading track: ' + result.message);
                 }
             } catch (error) {
-                console.error('Upload error:', error);
                 alert('Error uploading track: ' + error.message);
             }
-        }
-
-        function selectPlaylist(playlistId, playlistName) {
-            // Remove selected class from all playlist cards
-            document.querySelectorAll('.playlist-card').forEach(card => {
-                card.classList.remove('selected');
-            });
-
-            // Add selected class to clicked playlist
-            const selectedCard = document.querySelector(`[data-playlist-id="${playlistId}"]`);
-            selectedCard.classList.add('selected');
-
-            // Show and update upload section
-            document.getElementById('selectedPlaylistId').value = playlistId;
-            document.getElementById('selectedPlaylistName').textContent = playlistName;
-            document.getElementById('uploadSection').style.display = 'block';
-
-            // Scroll to upload section smoothly
-            document.getElementById('uploadSection').scrollIntoView({ behavior: 'smooth' });
         }
     </script>
 } 
