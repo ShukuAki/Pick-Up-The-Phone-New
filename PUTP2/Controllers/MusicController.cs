@@ -21,18 +21,17 @@ namespace PUTP2.Controllers
         private readonly string playlistsPath = Path.Combine("Data", "playlists.json");
         private readonly string tracksJsonPath = Path.Combine("Data", "tracks.json");
         private readonly string uploadsPath = Path.Combine("Data", "UploadedSongs");
-        private IEnumerable<Models.PlaylistInfo> _playlists;
+        private List<Models.PlaylistInfo> _playlists;
         private int _nextPlaylistId;
 
         public MusicController(PlaylistStorageService storageService)
         {
             _storageService = storageService;
-            _playlists = LoadData();
+            _playlists = LoadData().ToList();
         }
 
-
         // Add this field to store playlists in memory
-        private static List<PlaylistInfo> _playlistsMemory = new List<PlaylistInfo>();
+        private static List<Models.PlaylistInfo> _playlistsMemory = new List<Models.PlaylistInfo>();
 
         // The Vault - Main page showing all tracks
         public IActionResult Index()
@@ -140,17 +139,17 @@ namespace PUTP2.Controllers
             }
         }
 
-        private List<PlaylistInfo> LoadPlaylists()
+        private List<Models.PlaylistInfo> LoadPlaylists()
         {
             if (System.IO.File.Exists(playlistsPath))
             {
                 var json = System.IO.File.ReadAllText(playlistsPath);
-                return JsonSerializer.Deserialize<List<PlaylistInfo>>(json) ?? new List<PlaylistInfo>();
+                return JsonSerializer.Deserialize<List<Models.PlaylistInfo>>(json) ?? new List<Models.PlaylistInfo>();
             }
-            return new List<PlaylistInfo>();
+            return new List<Models.PlaylistInfo>();
         }
 
-        private async Task SavePlaylists(List<PlaylistInfo> playlists)
+        private async Task SavePlaylists(List<Models.PlaylistInfo> playlists)
         {
             await System.IO.File.WriteAllTextAsync(playlistsPath, 
                 JsonSerializer.Serialize(playlists, new JsonSerializerOptions { WriteIndented = true }));
@@ -178,9 +177,9 @@ namespace PUTP2.Controllers
         [HttpPost]
         public IActionResult SelectPlaylist(string playlistId, bool scroll = false)
         {
-            var viewModel = new UploadViewModel
+            var viewModel = new Models.UploadViewModel
             {
-                Playlists = _playlists.ToList(),
+                Playlists = _playlists,
                 SelectedPlaylistId = playlistId,
                 IsPlaylistSelected = true
             };
@@ -244,7 +243,7 @@ namespace PUTP2.Controllers
         [ValidateAntiForgeryToken]
         [RequestFormLimits(MultipartBodyLengthLimit = 52428800)]
         [RequestSizeLimit(52428800)]
-        public async Task<IActionResult> UploadTrack([FromForm] IFormFile trackFile, [FromForm] string trackName, [FromForm] string playlistId, [FromForm] bool isRecording = false)
+        public async Task<IActionResult> UploadTrack([FromForm] IFormFile trackFile, [FromForm] string trackName, [FromForm] string playlistId)
         {
             try
             {
@@ -258,76 +257,54 @@ namespace PUTP2.Controllers
                     return Json(new { success = false, message = "No file uploaded" });
                 }
 
-                // Define paths
-                var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "Data", "UploadedSongs");
-                var tracksJsonPath = Path.Combine(Directory.GetCurrentDirectory(), "Data", "tracks.json");
-                var playlistsJsonPath = Path.Combine(Directory.GetCurrentDirectory(), "Data", "playlists.json");
-
-                // Ensure directories exist
                 Directory.CreateDirectory(uploadsPath);
 
-                // Generate unique filename
-                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(trackFile.FileName)}";
+                var fileName = $"track_{Guid.NewGuid()}{Path.GetExtension(trackFile.FileName)}";
                 var filePath = Path.Combine(uploadsPath, fileName);
 
-                // Save the file
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
                     await trackFile.CopyToAsync(stream);
                 }
 
-                // Create track info
+                // Read existing tracks
+                var tracks = await LoadTracks();
+
+                // Create new track
                 var trackId = Guid.NewGuid().ToString();
-                var newTrack = new TrackInfo
+                var newTrack = new Models.TrackInfo
                 {
                     Id = trackId,
                     Name = trackName,
-                    FilePath = $"/Data/UploadedSongs/{fileName}",
+                    FilePath = filePath,
                     UploadDate = DateTime.Now,
-                    //Duration = "0:00",
-                    IsRecording = isRecording
+                    Duration = "0:00",
+                    IsRecording = false
                 };
 
-                // Update tracks.json
-                var tracks = new List<TrackInfo>();
-                if (System.IO.File.Exists(tracksJsonPath))
-                {
-                    var tracksJson = await System.IO.File.ReadAllTextAsync(tracksJsonPath);
-                    if (!string.IsNullOrEmpty(tracksJson))
-                    {
-                        tracks = JsonSerializer.Deserialize<List<TrackInfo>>(tracksJson) ?? new List<TrackInfo>();
-                    }
-                }
+                // Add new track to tracks list
                 tracks.Add(newTrack);
-                await System.IO.File.WriteAllTextAsync(tracksJsonPath, 
-                    JsonSerializer.Serialize(tracks, new JsonSerializerOptions { WriteIndented = true }));
+                await SaveTracks(tracks);
 
-                // Update playlists.json
-                var playlists = new List<PlaylistInfo>();
-                if (System.IO.File.Exists(playlistsJsonPath))
-                {
-                    var playlistsJson = await System.IO.File.ReadAllTextAsync(playlistsJsonPath);
-                    if (!string.IsNullOrEmpty(playlistsJson))
-                    {
-                        playlists = JsonSerializer.Deserialize<List<PlaylistInfo>>(playlistsJson) ?? new List<PlaylistInfo>();
-                    }
-                }
+                // Update playlist
+                var playlists = await System.IO.File.ReadAllTextAsync(playlistsPath);
+                var playlistsList = JsonSerializer.Deserialize<List<Models.PlaylistInfo>>(playlists)
+                    ?? new List<Models.PlaylistInfo>();
 
-                var playlist = playlists.FirstOrDefault(p => p.Id == playlistId);
+                var playlist = playlistsList.FirstOrDefault(p => p.Id == playlistId);
                 if (playlist != null)
                 {
                     playlist.Tracks ??= new List<string>();
                     playlist.Tracks.Add(trackId);
                     playlist.TrackCount = playlist.Tracks.Count;
-                    await System.IO.File.WriteAllTextAsync(playlistsJsonPath, 
-                        JsonSerializer.Serialize(playlists, new JsonSerializerOptions { WriteIndented = true }));
+                    await SavePlaylists(playlistsList);
                 }
 
-                return Json(new { success = true, message = "Track uploaded successfully" });
+                return Json(new { success = true });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = $"Error: {ex.Message}" });
+                return Json(new { success = false, message = ex.Message });
             }
         }
 
@@ -545,7 +522,7 @@ namespace PUTP2.Controllers
                 if (System.IO.File.Exists(tracksPath))
                 {
                     var tracksJson = System.IO.File.ReadAllText(tracksPath);
-                    var tracks = JsonSerializer.Deserialize<List<TrackInfo>>(tracksJson) ?? new List<TrackInfo>();
+                    var tracks = JsonSerializer.Deserialize<List<Models.TrackInfo>>(tracksJson) ?? new List<Models.TrackInfo>();
 
                     // Get tracks associated with this playlist
                     var playlistTrackIds = playlist.Tracks ?? new List<string>();
@@ -640,36 +617,46 @@ namespace PUTP2.Controllers
         }
 
         [HttpPost]
-        public IActionResult DeleteTrack(string trackId, string playlistId)
+        public async Task<IActionResult> DeleteTrack([FromBody] DeleteTrackModel model)
         {
             try
             {
-                var playlistsJson = System.IO.File.ReadAllText(playlistsPath);
-                var playlists = JsonSerializer.Deserialize<List<PUTP2.Models.PlaylistInfo>>(playlistsJson)
-                    ?? new List<PUTP2.Models.PlaylistInfo>();
+                // Read playlists.json
+                var playlistsJson = await System.IO.File.ReadAllTextAsync(playlistsPath);
+                var playlists = JsonSerializer.Deserialize<List<Models.PlaylistInfo>>(playlistsJson)
+                    ?? new List<Models.PlaylistInfo>();
 
-                var playlist = playlists.FirstOrDefault(p => p.Id == playlistId);
+                // Find and update the playlist
+                var playlist = playlists.FirstOrDefault(p => p.Id == model.PlaylistId);
                 if (playlist?.Tracks != null)
                 {
-                    playlist.Tracks.Remove(trackId);
+                    playlist.Tracks.Remove(model.TrackId);
                     playlist.TrackCount = playlist.Tracks.Count;
 
-                    System.IO.File.WriteAllText(playlistsPath, 
+                    // Save updated playlists
+                    await System.IO.File.WriteAllTextAsync(playlistsPath, 
                         JsonSerializer.Serialize(playlists, new JsonSerializerOptions { WriteIndented = true }));
 
-                    var tracksJson = System.IO.File.ReadAllText(tracksJsonPath);
-                    var tracks = JsonSerializer.Deserialize<List<PUTP2.Models.TrackInfo>>(tracksJson)
-                        ?? new List<PUTP2.Models.TrackInfo>();
+                    // Read tracks.json
+                    var tracksJson = await System.IO.File.ReadAllTextAsync(tracksJsonPath);
+                    var tracks = JsonSerializer.Deserialize<List<Models.TrackInfo>>(tracksJson)
+                        ?? new List<Models.TrackInfo>();
 
-                    var track = tracks.FirstOrDefault(t => t.Id == trackId);
+                    // Find and remove the track
+                    var track = tracks.FirstOrDefault(t => t.Id == model.TrackId);
                     if (track != null)
                     {
-                        if (System.IO.File.Exists(track.FilePath))
+                        // Delete the physical file
+                        if (!string.IsNullOrEmpty(track.FilePath) && System.IO.File.Exists(track.FilePath))
                         {
                             System.IO.File.Delete(track.FilePath);
                         }
+
+                        // Remove track from the list
                         tracks.Remove(track);
-                        System.IO.File.WriteAllText(tracksJsonPath, 
+
+                        // Save updated tracks
+                        await System.IO.File.WriteAllTextAsync(tracksJsonPath, 
                             JsonSerializer.Serialize(tracks, new JsonSerializerOptions { WriteIndented = true }));
                     }
                 }
@@ -682,14 +669,14 @@ namespace PUTP2.Controllers
             }
         }
 
-        private string CalculateTotalDuration(List<Track> tracks)
+        private string CalculateTotalDuration(List<string> durations)
         {
-            if (tracks == null || !tracks.Any())
+            if (durations == null || !durations.Any())
                 return "0:00";
 
-            var totalSeconds = tracks.Sum(track =>
+            var totalSeconds = durations.Sum(duration =>
             {
-                var parts = track.Duration.Split(':');
+                var parts = duration.Split(':');
                 if (parts.Length == 2 && int.TryParse(parts[0], out int minutes) && int.TryParse(parts[1], out int seconds))
                 {
                     return minutes * 60 + seconds;

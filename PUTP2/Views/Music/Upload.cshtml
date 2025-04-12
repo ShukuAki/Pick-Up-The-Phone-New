@@ -515,14 +515,22 @@
                                     <div class="icon-circle">
                                         <i class="fas fa-upload"></i>
                                     </div>
-                                    <h3>upload mp3</h3>
+                                    <h3>Upload MP3</h3>
                                 </div>
                                 <div class="panel-content">
-                                    <div class="file-upload">
-                                        <input type="file" id="trackFile" accept=".mp3" class="form-control">
-                                        <input type="text" id="uploadTrackName" class="form-control" placeholder="enter track name">
-                                        <button onclick="uploadTrack()" class="btn btn-success">Upload Track</button>
-                                    </div>
+                                    <form id="uploadForm" enctype="multipart/form-data">
+                                        @Html.AntiForgeryToken()
+                                        <div class="form-group">
+                                            <label for="uploadTrackName">Track Name</label>
+                                            <input type="text" id="uploadTrackName" name="trackName" class="form-control" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="trackFile">Choose MP3 File</label>
+                                            <input type="file" id="trackFile" name="trackFile" class="form-control" accept=".mp3" required>
+                                        </div>
+                                        <input type="hidden" name="playlistId" value="@Context.Request.Query["playlistId"]">
+                                        <button type="submit" class="btn btn-success">Upload Track</button>
+                                    </form>
                                 </div>
                             </div>
                         </div>
@@ -572,74 +580,84 @@
                 method: "POST",
                 body: formData
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
                     window.location.reload();
-                } else {
+                    } else {
                     alert('Error creating playlist: ' + data.message);
-                }
-            })
-            .catch(error => {
+                    }
+                })
+                .catch(error => {
                 alert('Error creating playlist: ' + error.message);
-            });
+                });
         });
 
-        // Recording functionality
-        let mediaRecorder;
-        let audioChunks = [];
+    // Recording functionality
+    let mediaRecorder;
+    let audioChunks = [];
         let stream;
-        let audioDuration = 0;
         let recordingStartTime;
+        let recordingDuration = 0;
+        let recordingInterval;
         const startButton = document.getElementById('startRecording');
         const stopButton = document.getElementById('stopRecording');
         const audioPlayback = document.getElementById('audioPlayback');
         const recordingStatus = document.getElementById('recordingStatus');
 
         startButton.addEventListener('click', async () => {
-            try {
+        try {
                 stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
-                audioChunks = [];
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
                 recordingStartTime = Date.now();
+                recordingDuration = 0;
 
-                mediaRecorder.ondataavailable = (event) => {
-                    audioChunks.push(event.data);
-                };
+                // Start duration counter
+                recordingInterval = setInterval(() => {
+                    recordingDuration = Math.floor((Date.now() - recordingStartTime) / 1000);
+                    recordingStatus.textContent = `Recording... ${formatDuration(recordingDuration)}`;
+                }, 1000);
+
+            mediaRecorder.ondataavailable = (event) => {
+                audioChunks.push(event.data);
+            };
 
                 mediaRecorder.onstop = async () => {
+                    clearInterval(recordingInterval);
                     const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
-                    audioPlayback.src = URL.createObjectURL(audioBlob);
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    audioPlayback.src = audioUrl;
                     audioPlayback.style.display = 'block';
-                    
+
                     // Get final duration
-                    audioDuration = (Date.now() - recordingStartTime) / 1000;
+                    const finalDuration = formatDuration(recordingDuration);
                     
                     // Stop all tracks in the stream
                     stream.getTracks().forEach(track => track.stop());
                     
-                    await uploadRecording(audioBlob);
-                };
+                    await uploadRecording(audioBlob, finalDuration);
+            };
 
-                mediaRecorder.start();
+            mediaRecorder.start();
                 startButton.disabled = true;
                 stopButton.disabled = false;
-                recordingStatus.textContent = 'Recording...';
-            } catch (error) {
+                recordingStatus.textContent = 'Recording... 0:00';
+        } catch (error) {
                 alert('Error accessing microphone: ' + error.message);
-            }
-        });
+        }
+    });
 
         stopButton.addEventListener('click', () => {
             if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-                mediaRecorder.stop();
-                startButton.disabled = false;
-                stopButton.disabled = true;
-                recordingStatus.textContent = 'Recording stopped';
+            mediaRecorder.stop();
+            startButton.disabled = false;
+            stopButton.disabled = true;
+                recordingStatus.textContent = `Recording stopped - ${formatDuration(recordingDuration)}`;
             }
         });
 
-        async function uploadRecording(audioBlob) {
+        async function uploadRecording(audioBlob, duration) {
             const trackName = document.getElementById('recordingName').value.trim();
             const playlistId = document.getElementById('selectedPlaylistId').value;
 
@@ -652,7 +670,7 @@
             formData.append('audioFile', audioBlob, 'recording.mp3');
             formData.append('trackName', trackName);
             formData.append('playlistId', playlistId);
-            formData.append('duration', formatDuration(audioDuration));
+            formData.append('duration', duration);
 
             try {
                 const response = await fetch('/Music/SaveRecording', {
@@ -677,6 +695,19 @@
             document.getElementById('selectedPlaylistName').textContent = title;
             document.getElementById('uploadSection').style.display = 'block';
             document.getElementById('emptyState').style.display = 'none';
+            
+            // Update the hidden playlistId field in the upload form
+            const uploadForm = document.getElementById('uploadForm');
+            const playlistIdInput = uploadForm.querySelector('input[name="playlistId"]');
+            if (playlistIdInput) {
+                playlistIdInput.value = id;
+            } else {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'playlistId';
+                input.value = id;
+                uploadForm.appendChild(input);
+            }
         }
 
         async function uploadTrack() {
@@ -689,12 +720,17 @@
                 return;
             }
 
+            try {
+                // Get duration of the uploaded file
+                const duration = await getAudioDuration(trackFile);
+                const formattedDuration = formatDuration(Math.floor(duration));
+
             const formData = new FormData();
-            formData.append('trackFile', trackFile);
+                formData.append('trackFile', trackFile);
             formData.append('trackName', trackName);
             formData.append('playlistId', playlistId);
-
-            try {
+                formData.append('duration', formattedDuration);
+                
                 const response = await fetch('/Music/UploadTrack', {
                     method: 'POST',
                     body: formData
@@ -711,6 +747,20 @@
             } catch (error) {
                 alert('Error uploading track: ' + error.message);
             }
+        }
+
+        // Helper function to get audio duration
+        function getAudioDuration(file) {
+            return new Promise((resolve, reject) => {
+                const audio = new Audio();
+                audio.addEventListener('loadedmetadata', () => {
+                    resolve(audio.duration);
+                });
+                audio.addEventListener('error', (error) => {
+                    reject(error);
+                });
+                audio.src = URL.createObjectURL(file);
+            });
         }
 
         // Sidebar Toggle Functionality
@@ -777,10 +827,57 @@
 
         // Helper function to format duration
         function formatDuration(seconds) {
+            if (!seconds || isNaN(seconds)) return "0:00";
             const minutes = Math.floor(seconds / 60);
             const remainingSeconds = Math.floor(seconds % 60);
             return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
         }
+
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const trackFile = document.getElementById('trackFile').files[0];
+            const trackName = document.getElementById('uploadTrackName').value.trim();
+            
+            if (!trackFile || !trackName) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            if (!trackFile.type.includes('audio')) {
+                alert('Please select an audio file');
+                return;
+            }
+
+            try {
+                const formData = new FormData(this);
+                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                
+                const response = await fetch('/Music/UploadTrack', {
+                    method: 'POST',
+                    headers: {
+                        'RequestVerificationToken': token
+                    },
+                    body: formData
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert('Track uploaded successfully!');
+                    // Clear form
+                    this.reset();
+                    // Redirect to playlist page if playlistId is available
+                    const playlistId = '@Context.Request.Query["playlistId"]';
+                    if (playlistId) {
+                    window.location.href = `/Music/Playlist/${playlistId}`;
+                    }
+                } else {
+                    alert('Error uploading track: ' + result.message);
+                }
+            } catch (error) {
+                alert('Error uploading track: ' + error.message);
+            }
+        });
     </script>
 </body>
 </html> 

@@ -4,9 +4,13 @@
     "Title": "Lullaby",
     "CoverUrl": "/images/default-playlist.jpg",
     "Tracks": [
-      "4712289e-e9d6-4937-a5dc-1be8fc595ded"
+      "4712289e-e9d6-4937-a5dc-1be8fc595ded",
+      "fba52a32-49b4-4b1f-8744-45569c57553c",
+      "7add8538-b1a9-4ccc-9d1e-479ad1205f00",
+      "75c80d50-e484-4b7f-8132-dc74c8294361",
+      "c7e754bc-967d-43d6-ac34-b5b65c0f8d9d"
     ],
-    "TrackCount": 1,
+    "TrackCount": 5,
     "Duration": "0:00",
     "CreatedDate": "0001-01-01T00:00:00"
   },

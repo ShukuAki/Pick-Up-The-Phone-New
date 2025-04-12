@@ -466,16 +466,68 @@
                         'Content-Type': 'application/json',
                         'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
                     },
-                    body: JSON.stringify({ trackId, playlistId })
+                    body: JSON.stringify({
+                        TrackId: trackId,
+                        PlaylistId: playlistId
+                    })
                 });
 
-                if (response.ok) {
-                    location.reload();
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                if (result.success) {
+                    // Remove the track row from the table
+                    const trackRow = document.querySelector(`tr[data-track-id="${trackId}"]`);
+                    if (trackRow) {
+                        trackRow.remove();
+                        
+                        // Update track numbers
+                        const trackRows = document.querySelectorAll('.track-row');
+                        trackRows.forEach((row, index) => {
+                            row.querySelector('td:first-child').textContent = index + 1;
+                        });
+
+                        // Update track count in the header
+                        const trackCountElement = document.querySelector('.text-muted');
+                        if (trackCountElement) {
+                            const currentText = trackCountElement.textContent;
+                            const parts = currentText.split('•');
+                            const newCount = trackRows.length;
+                            trackCountElement.textContent = `${newCount} tracks • ${parts[1]}`;
+                        }
+
+                        // If no tracks left, show the empty state
+                        if (trackRows.length === 0) {
+                            const tableContainer = document.querySelector('.table-responsive');
+                            const emptyState = `
+                                <div class="text-center text-muted my-5">
+                                    <h3>No tracks in this playlist</h3>
+                                    <p>Add some tracks to get started!</p>
+                                    <a href="/Music/Upload?playlistId=${playlistId}" class="btn btn-primary">
+                                        Add Tracks
+                                    </a>
+                                </div>
+                            `;
+                            tableContainer.parentElement.innerHTML = emptyState;
+                        }
+
+                        // If this was the currently playing track, stop playback
+                        const audioPlayer = document.getElementById('audioPlayer');
+                        if (audioPlayer && currentTrackId === trackId) {
+                            audioPlayer.pause();
+                            audioPlayer.src = '';
+                            document.getElementById('audioPlayerContainer').style.display = 'none';
+                            currentTrackId = null;
+                        }
+                    }
                 } else {
-                    alert('Error deleting track');
+                    alert('Error deleting track: ' + result.message);
                 }
             } catch (error) {
                 alert('Error deleting track: ' + error);
+                console.error('Delete track error:', error);
             }
         }
     </script>
