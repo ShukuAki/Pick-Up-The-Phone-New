@@ -3,8 +3,10 @@
     "Id": "1",
     "Title": "Lullaby",
     "CoverUrl": "/images/default-playlist.jpg",
-    "Tracks": [],
-    "TrackCount": 0,
+    "Tracks": [
+      "4712289e-e9d6-4937-a5dc-1be8fc595ded"
+    ],
+    "TrackCount": 1,
     "Duration": "0:00",
     "CreatedDate": "0001-01-01T00:00:00"
   },

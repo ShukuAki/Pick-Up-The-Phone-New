@@ -2,65 +2,82 @@
   {
     "Id": "3a5a8e30-6c8a-476d-aa73-091f4d89d5c0",
     "Name": "Voice Recording",
-    "Artist": null,
     "FilePath": "Data\\UploadedSongs\\recording_e6ae38e8-2370-405d-bd1c-3ec654f76db7.mp3",
     "UploadDate": "2025-04-05T13:55:19.4840811+08:00",
-    "IsRecording": true
+    "Duration": null,
+    "IsRecording": true,
+    "Artist": null
   },
   {
     "Id": "92aa6c75-3efa-41b5-ab3c-e82f8d5f6097",
     "Name": "awaw",
-    "Artist": null,
     "FilePath": "Data\\UploadedSongs\\recording_7290d7be-0693-4d05-a13a-88cfd0d12b41.mp3",
     "UploadDate": "2025-04-05T13:55:42.6576627+08:00",
-    "IsRecording": true
+    "Duration": null,
+    "IsRecording": true,
+    "Artist": null
   },
   {
     "Id": "13a7182c-6472-410e-b3d4-470719e42635",
     "Name": "Hey record",
-    "Artist": null,
     "FilePath": "Data\\UploadedSongs\\recording_be442c65-9bd5-449b-952c-5a7f2bbb4205.mp3",
     "UploadDate": "2025-04-05T13:57:48.3417872+08:00",
-    "IsRecording": true
+    "Duration": null,
+    "IsRecording": true,
+    "Artist": null
   },
   {
     "Id": "5ec30042-5246-4cd0-92af-0a834f0dd093",
     "Name": "Myrecording",
-    "Artist": null,
     "FilePath": "Data\\UploadedSongs\\recording_b254c19d-be74-44a0-ac23-eb69d85ac2cf.mp3",
     "UploadDate": "2025-04-05T13:59:36.9622602+08:00",
-    "IsRecording": true
+    "Duration": null,
+    "IsRecording": true,
+    "Artist": null
   },
   {
     "Id": "f9ca3f85-c63f-4345-8d92-8a9f7c8e3698",
     "Name": "HEHEHEHEHE",
-    "Artist": null,
     "FilePath": "Data\\UploadedSongs\\recording_7adcd506-4cb8-41d1-81bf-bff241cf8e0d.mp3",
     "UploadDate": "2025-04-05T14:22:35.8888059+08:00",
-    "IsRecording": true
+    "Duration": null,
+    "IsRecording": true,
+    "Artist": null
   },
   {
     "Id": "db49ef81-654a-4a93-8060-e6db2be9d1f9",
     "Name": "LAMAS",
-    "Artist": null,
     "FilePath": "/Data/UploadedSongs/3ce7a707-5b5d-4ca5-a993-93f5d7f0bb51.mp3",
     "UploadDate": "2025-04-05T14:41:09.9292327+08:00",
-    "IsRecording": false
+    "Duration": null,
+    "IsRecording": false,
+    "Artist": null
   },
   {
     "Id": "1565f73a-89bc-4b1e-81fc-b1c6d46e9e1b",
     "Name": "LAMAS",
-    "Artist": null,
     "FilePath": "/Data/UploadedSongs/3a1af3b9-7fa6-4c39-8303-e05d803bd5c5.mp3",
     "UploadDate": "2025-04-05T14:41:33.3985353+08:00",
-    "IsRecording": false
+    "Duration": null,
+    "IsRecording": false,
+    "Artist": null
   },
   {
     "Id": "4abd8130-2102-4caa-9bf1-3fb6967192bc",
     "Name": "aaaaaaaaaaaaaaaaaaaaaaaa",
-    "Artist": null,
     "FilePath": "/Data/UploadedSongs/fd957f83-445a-48e5-aba8-77bcb0251dd1.mp3",
     "UploadDate": "2025-04-05T14:45:56.8713338+08:00",
-    "IsRecording": false
+    "Duration": null,
+    "IsRecording": false,
+    "Artist": null
+  },
+  {
+    "Id": "4712289e-e9d6-4937-a5dc-1be8fc595ded",
+    "Name": "haya",
+    "FilePath": "Data\\UploadedSongs\\recording_eea7276e-f38f-4b14-9502-1324dc15ec3c.mp3",
+    "UploadDate": "2025-04-12T17:49:30.7820925+08:00",
+    "Duration": "0:00",
+    "IsRecording": true,
+    "Artist": null
   }
 ]
