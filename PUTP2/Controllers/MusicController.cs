@@ -721,6 +721,57 @@ namespace PUTP2.Controllers
                 return BadRequest($"Error accessing audio file: {ex.Message}");
             }
         }
+
+        public IActionResult PlaylistTracks(string id)
+        {
+            try
+            {
+                // Read playlists.json
+                var playlistsJson = System.IO.File.ReadAllText(playlistsPath);
+                var playlists = JsonSerializer.Deserialize<List<PUTP2.Models.PlaylistInfo>>(playlistsJson)
+                    ?? new List<PUTP2.Models.PlaylistInfo>();
+
+                // Find the specific playlist
+                var playlist = playlists.FirstOrDefault(p => p.Id == id);
+                if (playlist == null)
+                {
+                    return NotFound("Playlist not found");
+                }
+
+                // Read tracks.json
+                var tracksJson = System.IO.File.ReadAllText(tracksJsonPath);
+                var allTracks = JsonSerializer.Deserialize<List<PUTP2.Models.TrackInfo>>(tracksJson)
+                    ?? new List<PUTP2.Models.TrackInfo>();
+
+                // Get tracks for this playlist
+                var playlistTracks = new List<PUTP2.Models.TrackInfo>();
+                if (playlist.Tracks != null)
+                {
+                    foreach (var trackId in playlist.Tracks)
+                    {
+                        var track = allTracks.FirstOrDefault(t => t.Id == trackId);
+                        if (track != null)
+                        {
+                            playlistTracks.Add(track);
+                        }
+                    }
+                }
+            
+                var viewModel = new PlaylistViewModel
+                {
+                    Playlist = playlist,
+                    Tracks = playlistTracks
+                };
+
+                return View(viewModel);
+            }
+            catch (Exception ex)
+            {
+                // Log the error
+                Console.WriteLine($"Error loading playlist: {ex.Message}");
+                return RedirectToAction("Error", "Home");
+            }
+        }
     }
 
     public class DeleteTrackModel

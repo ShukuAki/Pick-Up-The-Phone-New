@@ -50,9 +50,14 @@
             <div class="playlists-grid">
                 @if (Model.Playlists != null && Model.Playlists.Any())
                 {
-                    @foreach (var playlist in Model.Playlists)
+                    @foreach (var playlist in Model.Playlists.Where(p => 
+                        p.Title == "childhood game" || 
+                        p.Title == "favourite meal" || 
+                        p.Title == "Lullaby" || 
+                        p.Title == "advice" || 
+                        p.Title == "remembered"))
                     {
-                        <a asp-controller="Music" asp-action="Playlist" asp-route-id="@playlist.Id" class="vinyl-cover-link">
+                        <a asp-controller="Music" asp-action="PlaylistTracks" asp-route-id="@playlist.Id" class="vinyl-cover-link">
                             <div class="vinyl-cover">
                                 <div class="vinyl-disc"></div>
                                 <div class="cover-sleeve">

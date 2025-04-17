@@ -79,5 +79,32 @@
     "Duration": "0:00",
     "IsRecording": true,
     "Artist": null
+  },
+  {
+    "Id": "f9127776-39b6-4350-a646-10e92f4df8a2",
+    "Name": "awaw",
+    "FilePath": "Data\\UploadedSongs\\recording_26c48ef6-9b76-4c7c-a708-968013cc63c3.mp3",
+    "UploadDate": "2025-04-13T09:08:35.5993344+08:00",
+    "Duration": "0:00",
+    "IsRecording": true,
+    "Artist": null
+  },
+  {
+    "Id": "bd87e575-0b36-4bdc-b5e5-78e122728923",
+    "Name": "awda",
+    "FilePath": "Data\\UploadedSongs\\recording_eaecf2d0-e04f-4f88-8d0e-b6536ac677ee.mp3",
+    "UploadDate": "2025-04-13T10:36:19.8051782+08:00",
+    "Duration": "0:00",
+    "IsRecording": true,
+    "Artist": null
+  },
+  {
+    "Id": "13886c6a-c61d-461a-ac77-d9ace77e86e8",
+    "Name": "rw3",
+    "FilePath": "Data\\UploadedSongs\\recording_13eaae5f-2cc1-419a-bea5-5f7f81ca7db6.mp3",
+    "UploadDate": "2025-04-13T11:12:04.9531805+08:00",
+    "Duration": "0:00",
+    "IsRecording": true,
+    "Artist": null
   }
 ]
