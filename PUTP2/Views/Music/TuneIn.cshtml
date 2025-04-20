@@ -2,83 +2,608 @@
 
 @{
     ViewData["Title"] = "tune in";
+    ViewData["HidePlayerBar"] = "true";
 }
 
 <div class="tune-in-container">
+    <a href="/Music/Profile" class="profile-button">
+        <i class="fas fa-user"></i>
+    </a>
+
     <h1 class="tune-in-title">tune in</h1>
-
-    <div class="tune-in-content">
-        <div class="tracks-section">
-            <h2 class="section-title">now playing</h2>
-            <div class="tracks-list">
-                @if (Model.Tracks != null && Model.Tracks.Any())
+    
+    <div class="playlist-cards-container">
+        <div class="playlist-cards-grid">
+            @if (Model.Playlists != null && Model.Playlists.Any())
+            {
+                @foreach (var playlist in Model.Playlists)
                 {
-                    @foreach (var track in Model.Tracks)
-                    {
-                        <div class="track-item">
-                            <div class="track-info">
-                                <div class="track-cover">
-                                    <img src="@track.CoverUrl" alt="@track.Title">
+                    <div class="playlist-card-wrapper" data-playlist-id="@playlist.Id">
+                        <div class="playlist-card" data-level="@playlist.Level">
+                            <div class="playlist-card-inner">
+                                <div class="playlist-card-front">
+                                    <div class="level-pattern"></div>
                                 </div>
-                                <div class="track-details">
-                                    <h3>@track.Title</h3>
-                                    <p class="artist">@track.Artist</p>
-                                    <p class="album">@track.Album</p>
-                                </div>
-                            </div>
-                            <div class="track-controls">
-                                <span class="duration">@track.Duration</span>
-                                <button class="play-button">
-                                    <i class="fas fa-play"></i>
-                                </button>
-                            </div>
-                        </div>
-                    }
-                }
-                else
-                {
-                    <div class="empty-state">
-                        <i class="fas fa-music"></i>
-                        <p>No tracks playing right now</p>
-                    </div>
-                }
-            </div>
-        </div>
-
-        <div class="playlists-section">
-            <h2 class="section-title">your playlists</h2>
-            <div class="playlists-grid">
-                @if (Model.Playlists != null && Model.Playlists.Any())
-                {
-                    @foreach (var playlist in Model.Playlists.Where(p => 
-                        p.Title == "childhood game" || 
-                        p.Title == "favourite meal" || 
-                        p.Title == "Lullaby" || 
-                        p.Title == "advice" || 
-                        p.Title == "remembered"))
-                    {
-                        <a asp-controller="Music" asp-action="PlaylistTracks" asp-route-id="@playlist.Id" class="vinyl-cover-link">
-                            <div class="vinyl-cover">
-                                <div class="vinyl-disc"></div>
-                                <div class="cover-sleeve">
+                                <div class="playlist-card-back">
                                     <div class="playlist-info">
                                         <h2>@playlist.Title</h2>
                                         <p>@playlist.TrackCount tracks • @playlist.Duration</p>
                                     </div>
                                 </div>
                             </div>
-                        </a>
-                    }
-                }
-                else
-                {
-                    <div class="empty-state">
-                        <i class="fas fa-music"></i>
-                        <p>No playlists yet. Create one to get started!</p>
-                        <a asp-controller="Music" asp-action="Upload" class="create-playlist-btn">Create Playlist</a>
+                        </div>
+                        <button class="delete-playlist-btn" onclick="deletePlaylist('@playlist.Id', '@playlist.Title')">
+                            <i class="fas fa-trash"></i>
+                        </button>
                     </div>
                 }
-            </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="fas fa-music"></i>
+                    <p>No playlists yet. Create one to get started!</p>
+                    <a asp-controller="Music" asp-action="Upload" class="create-playlist-btn">Create Playlist</a>
+                </div>
+            }
         </div>
     </div>
-</div> 
+
+    <a href="/Home/Splash" class="switch-view-button">
+        <i class="fas fa-record-vinyl"></i>
+        <span>the vault</span>
+    </a>
+
+    <a href="/Music/TuneInUpload" class="upload-button">
+        <i class="fas fa-plus"></i>
+    </a>
+</div>
+
+@section Styles {
+    <style>
+        /* Hide the footer bar */
+        .footer-nav {
+            display: none !important;
+        }
+
+        .tune-in-container {
+            position: relative;
+            padding: 20px;
+            padding-top: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tune-in-title {
+            text-align: center;
+            margin-top: 20px;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            color: var(--text-primary);
+        }
+
+        .playlist-cards-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .playlist-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .playlist-card-wrapper {
+            width: 200px;
+            height: 280px;
+            perspective: 1000px;
+            cursor: pointer;
+            position: relative;
+            background: transparent;
+        }
+
+        .playlist-card {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            cursor: pointer;
+            background: transparent;
+        }
+
+        .playlist-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 2s ease;
+            transform-style: preserve-3d;
+        }
+
+        .playlist-card-wrapper:hover .playlist-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .playlist-card-front, .playlist-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: transparent;
+        }
+
+        .playlist-card-front {
+            background: transparent;
+        }
+
+        .playlist-card-back {
+            transform: rotateY(180deg);
+            padding: 20px;
+        }
+
+        .level-pattern {
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        /* Level 1 playlists */
+        [data-level="1"] .level-pattern {
+            background-image: url('/images/level 01-pattern.jpg');
+        }
+
+        [data-level="1"] .playlist-card-front,
+        [data-level="1"] .playlist-card-back {
+            border: 2px solid #ffa07a;
+        }
+
+        [data-level="1"] .playlist-card-back {
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(139, 115, 85, 0.8));
+        }
+
+        /* Level 2 playlists */
+        [data-level="2"] .level-pattern {
+            background-image: url('/images/level 02-pattern.jpg');
+        }
+
+        [data-level="2"] .playlist-card-front,
+        [data-level="2"] .playlist-card-back {
+            border: 2px solid #45b7d1;
+        }
+
+        [data-level="2"] .playlist-card-back {
+            background: linear-gradient(135deg, rgba(255, 75, 75, 0.8), rgba(139, 115, 85, 0.8));
+        }
+
+        /* Level 3 playlists */
+        [data-level="3"] .level-pattern {
+            background-image: url('/images/level3.jpg');
+        }
+
+        [data-level="3"] .playlist-card-front,
+        [data-level="3"] .playlist-card-back {
+            border: 2px solid #c084fc;
+        }
+
+        [data-level="3"] .playlist-card-back {
+            background: linear-gradient(135deg, rgba(167, 139, 250, 0.8), rgba(192, 132, 252, 0.8));
+        }
+
+        @@media (max-width: 768px) {
+            .playlist-cards-container {
+                width: 100%;
+                overflow: hidden;
+            }
+
+            .playlist-cards-grid {
+                display: flex;
+                overflow-x: auto;
+                scroll-snap-type: x mandatory;
+                -webkit-overflow-scrolling: touch;
+                padding: 20px;
+                gap: 20px;
+                width: 100%;
+                align-items: center;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+            }
+
+            .playlist-cards-grid::-webkit-scrollbar {
+                display: none;
+            }
+
+            .playlist-card-wrapper {
+                flex: 0 0 280px;
+                width: 280px;
+                height: 380px;
+                scroll-snap-align: center;
+                transform: scale(0.85);
+                opacity: 0.5;
+                transition: all 0.3s ease;
+            }
+
+            .playlist-card-wrapper.active {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .playlist-info {
+            text-align: center;
+            color: var(--text-primary);
+        }
+
+        .playlist-info h2 {
+            margin: 0;
+            font-size: 24px;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            margin-bottom: 10px;
+        }
+
+        .playlist-info p {
+            margin: 5px 0 0;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .delete-playlist-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 0, 0, 0.7);
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+        }
+
+        .playlist-card-wrapper:hover .delete-playlist-btn {
+            opacity: 1;
+        }
+
+        .delete-playlist-btn:hover {
+            background: rgba(255, 0, 0, 0.9);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+            grid-column: 1 / -1;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .empty-state p {
+            margin-bottom: 20px;
+        }
+
+        .create-playlist-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: var(--accent);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .create-playlist-btn:hover {
+            background: var(--accent-hover);
+        }
+
+        .profile-button {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            color: var(--text-primary);
+            font-size: 18px;
+            text-decoration: none;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.5);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .profile-button:hover {
+            background: rgba(0, 0, 0, 0.7);
+            transform: scale(1.1);
+        }
+
+        .switch-view-button {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.5);
+            color: var(--text-primary);
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            z-index: 999;
+        }
+
+        .switch-view-button:hover {
+            background: rgba(0, 0, 0, 0.7);
+            transform: translateX(-50%) scale(1.05);
+            color: var(--text-primary);
+        }
+
+        .switch-view-button i {
+            font-size: 16px;
+        }
+
+        .upload-button {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            color: var(--text-primary);
+            text-decoration: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            z-index: 999;
+        }
+
+        .upload-button:hover {
+            background: rgba(0, 0, 0, 0.7);
+            transform: scale(1.1);
+            color: var(--text-primary);
+        }
+
+        /* Remove footer-related styles */
+        .content-wrapper {
+            height: 100vh;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        function deletePlaylist(id, title) {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <h3>Delete Playlist</h3>
+                    <p>Are you sure you want to delete "${title}"?</p>
+                    <p>This action cannot be undone.</p>
+                    <div class="modal-buttons">
+                        <button class="confirm-delete" onclick="confirmDelete('${id}')">Delete</button>
+                        <button class="cancel-delete" onclick="closeModal()">Cancel</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.style.display = 'block';
+        }
+
+        function closeModal() {
+            const modal = document.querySelector('.modal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        async function confirmDelete(id) {
+            try {
+                const response = await fetch(`/Music/DeletePlaylist?id=${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    const playlistCard = document.querySelector(`[data-playlist-id="${id}"]`);
+                    if (playlistCard) {
+                        playlistCard.remove();
+                    }
+                    alert('Playlist deleted successfully!');
+                    window.location.reload();
+                } else {
+                    alert('Error deleting playlist: ' + result.message);
+                }
+            } catch (error) {
+                alert('Error deleting playlist: ' + error.message);
+            } finally {
+                closeModal();
+            }
+        }
+
+        document.addEventListener('click', function(event) {
+            const modal = document.querySelector('.modal');
+            if (modal && event.target === modal) {
+                closeModal();
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.matchMedia('(max-width: 768px)').matches) {
+                const container = document.querySelector('.playlist-cards-grid');
+                const cards = Array.from(container.querySelectorAll('.playlist-card-wrapper'));
+                
+                function updateActiveCard() {
+                    const middle = container.scrollLeft + (container.offsetWidth / 2);
+                    let closestCard = null;
+                    let closestDistance = Infinity;
+                    
+                    cards.forEach(card => {
+                        const cardMiddle = card.offsetLeft + (card.offsetWidth / 2);
+                        const distance = Math.abs(middle - cardMiddle);
+                        
+                        if (distance < closestDistance) {
+                            closestDistance = distance;
+                            closestCard = card;
+                        }
+                        
+                        card.classList.remove('active');
+                    });
+                    
+                    if (closestCard) {
+                        closestCard.classList.add('active');
+                    }
+                }
+
+                // Handle scroll events
+                let scrollTimeout;
+                container.addEventListener('scroll', () => {
+                    clearTimeout(scrollTimeout);
+                    scrollTimeout = setTimeout(updateActiveCard, 100);
+                }, { passive: true });
+
+                // Initial setup
+                updateActiveCard();
+                
+                // Handle window resize
+                window.addEventListener('resize', updateActiveCard, { passive: true });
+            }
+
+            // Handle click events (excluding delete button)
+            const playlistCards = document.querySelectorAll('.playlist-card-wrapper');
+            playlistCards.forEach(card => {
+                card.addEventListener('click', function(e) {
+                    if (e.target.closest('.delete-playlist-btn')) return;
+                    
+                    const playlistId = this.dataset.playlistId;
+                    window.location.href = `/Music/TuneInPlaylist/${playlistId}`;
+                });
+            });
+        });
+
+        function uploadTrack(playlistId) {
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = 'audio/*';
+            fileInput.style.display = 'none';
+            document.body.appendChild(fileInput);
+
+            fileInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const trackName = file.name.replace(/\.[^/.]+$/, ""); // Remove extension
+                const formData = new FormData();
+                formData.append('trackFile', file);
+                formData.append('trackName', trackName);
+                formData.append('playlistId', playlistId);
+                formData.append('isTuneIn', 'true'); // Mark as Tune In track
+
+                try {
+                    const response = await fetch('/Music/UploadTrack', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await response.json();
+                    if (result.success) {
+                        location.reload(); // Refresh to show new track
+                    } else {
+                        alert(result.message || 'Error uploading track');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Error uploading track');
+                }
+
+                document.body.removeChild(fileInput);
+            });
+
+            fileInput.click();
+        }
+
+        function recordTrack(playlistId) {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                alert('Recording is not supported in your browser');
+                return;
+            }
+
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    const mediaRecorder = new MediaRecorder(stream);
+                    const audioChunks = [];
+
+                    mediaRecorder.addEventListener('dataavailable', event => {
+                        audioChunks.push(event.data);
+                    });
+
+                    mediaRecorder.addEventListener('stop', async () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+                        const formData = new FormData();
+                        formData.append('trackFile', audioBlob, 'recording.mp3');
+                        formData.append('trackName', 'New Recording');
+                        formData.append('playlistId', playlistId);
+                        formData.append('isRecording', 'true');
+                        formData.append('isTuneIn', 'true'); // Mark as Tune In track
+
+                        try {
+                            const response = await fetch('/Music/UploadTrack', {
+                                method: 'POST',
+                                body: formData
+                            });
+
+                            const result = await response.json();
+                            if (result.success) {
+                                location.reload(); // Refresh to show new track
+                            } else {
+                                alert(result.message || 'Error saving recording');
+                            }
+                        } catch (error) {
+                            console.error('Error:', error);
+                            alert('Error saving recording');
+                        }
+                    });
+
+                    mediaRecorder.start();
+                    alert('Recording started. Click OK to stop recording.');
+                    setTimeout(() => {
+                        mediaRecorder.stop();
+                        stream.getTracks().forEach(track => track.stop());
+                    }, 10000); // Record for 10 seconds
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error accessing microphone');
+                });
+        }
+    </script>
+} 

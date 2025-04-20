@@ -1,8 +1,9 @@
-@model List<PUTP2.Models.PlaylistInfo>
+@model PUTP2.Models.UploadViewModel
 
 @{
-    ViewData["Title"] = "self";
-    var playlistId = Context.Request.Query["playlistId"].ToString();
+    ViewData["Title"] = "Upload";
+    ViewData["HidePlayerBar"] = "true";
+    var playlistId = Model.SelectedPlaylistId;
 }
 
 <!DOCTYPE html>
@@ -42,7 +43,7 @@
             overflow: hidden;
             padding: 20px;
             gap: 20px;
-            height: calc(100vh - 60px); /* Subtract footer height */
+            height: 100vh;
         }
 
         .sidebar-container {
@@ -285,35 +286,7 @@
 
         /* Footer Navigation */
         .footer-nav {
-            height: 60px;
-            background-color: #181818;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            border-top: 1px solid #282828;
-        }
-
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-decoration: none;
-            color: #b3b3b3;
-            font-size: 12px;
-            transition: color 0.2s;
-        }
-
-        .nav-item:hover {
-            color: #ffffff;
-        }
-
-        .nav-item i {
-            font-size: 20px;
-            margin-bottom: 4px;
-        }
-
-        .nav-item.active {
-            color: #1db954;
+            display: none !important;
         }
 
         /* Scrollbar Styling */
@@ -438,9 +411,49 @@
         .sidebar-overlay.active {
             display: block;
         }
+
+        .upload-container {
+            min-height: 100vh;
+            padding: 20px;
+            background: var(--background);
+            position: relative;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            color: #ffffff;
+            font-size: 24px;
+            text-decoration: none;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.5);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: rgba(0, 0, 0, 0.7);
+            transform: scale(1.1);
+        }
+
+        .upload-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding-top: 60px;
+        }
     </style>
 </head>
 <body>
+    <a href="/Music/Index" class="back-button">
+        <i class="fas fa-chevron-left"></i>
+    </a>
+
     <button class="sidebar-toggle" id="sidebarToggle">
         <i class="fas fa-bars"></i>
     </button>
@@ -465,7 +478,7 @@
                     </div>
 
                     <div class="playlists">
-                        @foreach (var playlist in Model)
+                        @foreach (var playlist in Model.Playlists)
                         {
                             <div class="playlist-item" data-playlist-id="@playlist.Id" onclick="selectPlaylist('@playlist.Id', '@playlist.Title')">
                                 <div class="playlist-cover">
@@ -483,9 +496,9 @@
 
             <div class="main-container">
                 <div class="main-content">
-                    <div id="uploadSection" class="upload-section" style="display: none;">
+                    <div id="uploadSection" class="upload-section" style="display: @(Model.IsPlaylistSelected ? "block" : "none");">
                         <h2>add to <span id="selectedPlaylistName"></span></h2>
-                        <input type="hidden" id="selectedPlaylistId" value="@playlistId" />
+                        <input type="hidden" id="selectedPlaylistId" value="@Model.SelectedPlaylistId" />
 
                         <div class="content-grid">
                             <!-- Left Panel - Record Track -->
@@ -519,6 +532,7 @@
                                 </div>
                                 <div class="panel-content">
                                     <div class="file-upload">
+                                        @Html.AntiForgeryToken()
                                         <input type="file" id="trackFile" accept=".mp3" class="form-control">
                                         <input type="text" id="uploadTrackName" class="form-control" placeholder="enter track name">
                                         <button onclick="uploadTrack()" class="btn btn-success">Upload Track</button>
@@ -529,7 +543,7 @@
                     </div>
 
                     <!-- Empty State -->
-                    <div id="emptyState" class="empty-state">
+                    <div id="emptyState" class="empty-state" style="display: @(!Model.IsPlaylistSelected ? "block" : "none");">
                         <i class="fas fa-music"></i>
                         <h3>no playlist selected</h3>
                         <p>select a playlist from your library or create a new one to start adding tracks</p>
@@ -537,26 +551,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Footer Navigation -->
-        <nav class="footer-nav">
-            <a href="/Music" class="nav-item">
-                <i class="fas fa-compact-disc"></i>
-                <span>the vault</span>
-            </a>
-            <a href="/Music/Upload" class="nav-item active">
-                <i class="fas fa-upload"></i>
-                <span>upload</span>
-            </a>
-            <a href="/Music/TuneIn" class="nav-item">
-                <i class="fas fa-broadcast-tower"></i>
-                <span>tune in</span>
-            </a>
-            <a href="/Music/Profile" class="nav-item">
-                <i class="fas fa-user"></i>
-                <span>profile</span>
-            </a>
-        </nav>
     </div>
 
     <script>
@@ -693,22 +687,35 @@
             formData.append('trackFile', trackFile);
             formData.append('trackName', trackName);
             formData.append('playlistId', playlistId);
+            formData.append('isRecording', 'false');
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
 
             try {
                 const response = await fetch('/Music/UploadTrack', {
                     method: 'POST',
-                    body: formData
+                    body: formData,
+                    headers: {
+                        'RequestVerificationToken': token
+                    }
                 });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
 
                 const result = await response.json();
                 if (result.success) {
                     alert('Track uploaded successfully!');
                     document.getElementById('trackFile').value = '';
                     document.getElementById('uploadTrackName').value = '';
+                    // Optionally refresh the playlist
+                    window.location.reload();
                 } else {
-                    alert('Error uploading track: ' + result.message);
+                    alert('Error uploading track: ' + (result.message || 'Unknown error'));
                 }
             } catch (error) {
+                console.error('Error:', error);
                 alert('Error uploading track: ' + error.message);
             }
         }
@@ -780,6 +787,70 @@
             const minutes = Math.floor(seconds / 60);
             const remainingSeconds = Math.floor(seconds % 60);
             return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+
+        function uploadFile() {
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = 'audio/mp3';
+            fileInput.style.display = 'none';
+            document.body.appendChild(fileInput);
+
+            fileInput.addEventListener('change', async function() {
+                const file = this.files[0];
+                if (!file) return;
+
+                try {
+                    // Create an audio element to get duration
+                    const audio = document.createElement('audio');
+                    audio.src = URL.createObjectURL(file);
+
+                    // Wait for metadata to load to get duration
+                    await new Promise((resolve, reject) => {
+                        audio.addEventListener('loadedmetadata', () => resolve());
+                        audio.addEventListener('error', () => reject(new Error('Error loading audio file')));
+                    });
+
+                    const duration = formatDuration(audio.duration);
+                    const playlistId = document.getElementById('selectedPlaylistId').value;
+
+                    if (!playlistId) {
+                        throw new Error('No playlist selected');
+                    }
+
+                    const formData = new FormData();
+                    formData.append('trackFile', file);
+                    formData.append('trackName', file.name.replace('.mp3', ''));
+                    formData.append('playlistId', playlistId);
+                    formData.append('isRecording', 'false');
+                    formData.append('duration', duration);
+                    formData.append('isTuneIn', 'false');
+
+                    const response = await fetch('/Music/UploadTrack', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    if (result.success) {
+                        alert('Track uploaded successfully!');
+                    } else {
+                        alert('Error uploading track: ' + (result.message || 'Unknown error'));
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Error uploading track: ' + error.message);
+                } finally {
+                    document.body.removeChild(fileInput);
+                    URL.revokeObjectURL(audio?.src);
+                }
+            });
+
+            fileInput.click();
         }
     </script>
 </body>

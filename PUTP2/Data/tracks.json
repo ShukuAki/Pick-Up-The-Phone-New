@@ -6,7 +6,10 @@
     "UploadDate": "2025-04-05T13:55:19.4840811+08:00",
     "Duration": null,
     "IsRecording": true,
-    "Artist": null
+    "Artist": null,
+    "UserTag": null,
+    "Location": null,
+    "ImageUrl": null
   },
   {
     "Id": "92aa6c75-3efa-41b5-ab3c-e82f8d5f6097",
@@ -15,7 +18,10 @@
     "UploadDate": "2025-04-05T13:55:42.6576627+08:00",
     "Duration": null,
     "IsRecording": true,
-    "Artist": null
+    "Artist": null,
+    "UserTag": null,
+    "Location": null,
+    "ImageUrl": null
   },
   {
     "Id": "13a7182c-6472-410e-b3d4-470719e42635",
@@ -24,7 +30,10 @@
     "UploadDate": "2025-04-05T13:57:48.3417872+08:00",
     "Duration": null,
     "IsRecording": true,
-    "Artist": null
+    "Artist": null,
+    "UserTag": null,
+    "Location": null,
+    "ImageUrl": null
   },
   {
     "Id": "5ec30042-5246-4cd0-92af-0a834f0dd093",
@@ -33,7 +42,10 @@
     "UploadDate": "2025-04-05T13:59:36.9622602+08:00",
     "Duration": null,
     "IsRecording": true,
-    "Artist": null
+    "Artist": null,
+    "UserTag": null,
+    "Location": null,
+    "ImageUrl": null
   },
   {
     "Id": "f9ca3f85-c63f-4345-8d92-8a9f7c8e3698",
@@ -42,7 +54,10 @@
     "UploadDate": "2025-04-05T14:22:35.8888059+08:00",
     "Duration": null,
     "IsRecording": true,
-    "Artist": null
+    "Artist": null,
+    "UserTag": null,
+    "Location": null,
+    "ImageUrl": null
   },
   {
     "Id": "db49ef81-654a-4a93-8060-e6db2be9d1f9",
@@ -51,7 +66,10 @@
     "UploadDate": "2025-04-05T14:41:09.9292327+08:00",
     "Duration": null,
     "IsRecording": false,
-    "Artist": null
+    "Artist": null,
+    "UserTag": null,
+    "Location": null,
+    "ImageUrl": null
   },
   {
     "Id": "1565f73a-89bc-4b1e-81fc-b1c6d46e9e1b",
@@ -60,7 +78,10 @@
     "UploadDate": "2025-04-05T14:41:33.3985353+08:00",
     "Duration": null,
     "IsRecording": false,
-    "Artist": null
+    "Artist": null,
+    "UserTag": null,
+    "Location": null,
+    "ImageUrl": null
   },
   {
     "Id": "4abd8130-2102-4caa-9bf1-3fb6967192bc",
@@ -69,7 +90,10 @@
     "UploadDate": "2025-04-05T14:45:56.8713338+08:00",
     "Duration": null,
     "IsRecording": false,
-    "Artist": null
+    "Artist": null,
+    "UserTag": null,
+    "Location": null,
+    "ImageUrl": null
   },
   {
     "Id": "4712289e-e9d6-4937-a5dc-1be8fc595ded",
@@ -78,33 +102,141 @@
     "UploadDate": "2025-04-12T17:49:30.7820925+08:00",
     "Duration": "0:00",
     "IsRecording": true,
-    "Artist": null
+    "Artist": null,
+    "UserTag": null,
+    "Location": null,
+    "ImageUrl": null
   },
   {
-    "Id": "f9127776-39b6-4350-a646-10e92f4df8a2",
-    "Name": "awaw",
-    "FilePath": "Data\\UploadedSongs\\recording_26c48ef6-9b76-4c7c-a708-968013cc63c3.mp3",
-    "UploadDate": "2025-04-13T09:08:35.5993344+08:00",
+    "Id": "a4bdd755-adb4-49eb-a200-66568dbba944",
+    "Name": "concentration",
+    "FilePath": "Data\\UploadedSongs\\recording_ca0ab41d-f432-4a05-b21f-2b214c21f5e1.mp3",
+    "UploadDate": "2025-04-19T15:16:28.1385284+08:00",
     "Duration": "0:00",
     "IsRecording": true,
-    "Artist": null
+    "Artist": null,
+    "UserTag": null,
+    "Location": null,
+    "ImageUrl": null
   },
   {
-    "Id": "bd87e575-0b36-4bdc-b5e5-78e122728923",
-    "Name": "awda",
-    "FilePath": "Data\\UploadedSongs\\recording_eaecf2d0-e04f-4f88-8d0e-b6536ac677ee.mp3",
-    "UploadDate": "2025-04-13T10:36:19.8051782+08:00",
+    "Id": "0d3782b2-9eb5-40a5-93fc-8f040e0aaeeb",
+    "Name": "12",
+    "FilePath": "Data\\UploadedSongs\\recording_09ee1c77-ded3-4cd3-83ad-5583190e53d0.mp3",
+    "UploadDate": "2025-04-20T09:11:54.7614796+08:00",
     "Duration": "0:00",
     "IsRecording": true,
-    "Artist": null
+    "Artist": null,
+    "UserTag": null,
+    "Location": null,
+    "ImageUrl": null
   },
   {
-    "Id": "13886c6a-c61d-461a-ac77-d9ace77e86e8",
-    "Name": "rw3",
-    "FilePath": "Data\\UploadedSongs\\recording_13eaae5f-2cc1-419a-bea5-5f7f81ca7db6.mp3",
-    "UploadDate": "2025-04-13T11:12:04.9531805+08:00",
+    "Id": "cee6b80d-b398-4e6d-adac-d38a70a5906d",
+    "Name": "23",
+    "FilePath": "Data\\UploadedSongs\\recording_24049508-0902-482f-96ee-bb0dcea56d34.mp3",
+    "UploadDate": "2025-04-20T09:12:08.5681888+08:00",
     "Duration": "0:00",
     "IsRecording": true,
-    "Artist": null
+    "Artist": null,
+    "UserTag": null,
+    "Location": null,
+    "ImageUrl": null
+  },
+  {
+    "Id": "e2ae1826-ff6f-4b05-8d97-797e543cc07c",
+    "Name": "34",
+    "FilePath": "Data\\UploadedSongs\\recording_3ba78ff3-9db8-4994-b301-d3ff3fea2a92.mp3",
+    "UploadDate": "2025-04-20T09:12:15.758609+08:00",
+    "Duration": "0:00",
+    "IsRecording": true,
+    "Artist": null,
+    "UserTag": null,
+    "Location": null,
+    "ImageUrl": null
+  },
+  {
+    "Id": "1a0a3634-76da-4b11-9c30-a7487124f360",
+    "Name": "45",
+    "FilePath": "Data\\UploadedSongs\\recording_ecf86db4-b9b9-4826-9b02-277b04c621db.mp3",
+    "UploadDate": "2025-04-20T13:20:23.6004404+08:00",
+    "Duration": "0:00",
+    "IsRecording": true,
+    "Artist": null,
+    "UserTag": null,
+    "Location": null,
+    "ImageUrl": null
+  },
+  {
+    "Id": "a3378466-4a7a-423a-9299-104e69839119",
+    "Name": "faithfully",
+    "FilePath": "Data\\UploadedSongs\\recording_b12dd59e-77a5-4fcb-ac4b-2ebb9a462b36.mp3",
+    "UploadDate": "2025-04-20T13:35:34.1291033+08:00",
+    "Duration": "0:00",
+    "IsRecording": true,
+    "Artist": null,
+    "UserTag": null,
+    "Location": null,
+    "ImageUrl": null
+  },
+  {
+    "Id": "a71472d9-435e-4fca-ba5e-29826180f209",
+    "Name": "open arms",
+    "FilePath": "Data\\UploadedSongs\\recording_23e19864-4133-4dcd-bd5b-b6dcd9447c40.mp3",
+    "UploadDate": "2025-04-20T13:39:02.8940743+08:00",
+    "Duration": "0:00",
+    "IsRecording": true,
+    "Artist": null,
+    "UserTag": null,
+    "Location": null,
+    "ImageUrl": null
+  },
+  {
+    "Id": "639a6176-2dea-4ed5-8006-84e068e6f41f",
+    "Name": "where did i go wrong",
+    "FilePath": "Data\\UploadedSongs\\recording_fe70ec63-9ca8-41ae-8836-f301128ec583.mp3",
+    "UploadDate": "2025-04-20T14:09:58.6500764+08:00",
+    "Duration": "0:00",
+    "IsRecording": true,
+    "Artist": null,
+    "UserTag": null,
+    "Location": "Unknown",
+    "ImageUrl": "/images/default-album-cover.jpg"
+  },
+  {
+    "Id": "5612128d-afc6-4ef3-8e3f-61cc4abe6005",
+    "Name": "keshi muna",
+    "FilePath": "Data\\UploadedSongs\\19fa6386-76f9-44da-9431-7235c5e6f9a3.mp3",
+    "UploadDate": "2025-04-20T14:16:12.0811288+08:00",
+    "Duration": "0:00",
+    "IsRecording": false,
+    "Artist": null,
+    "UserTag": null,
+    "Location": "Unknown",
+    "ImageUrl": "/images/default-album-cover.jpg"
+  },
+  {
+    "Id": "92540cc7-b554-4883-ad9b-1417faefd36c",
+    "Name": "ligo",
+    "FilePath": "Data\\UploadedSongs\\recording_cedd7da3-00c9-4474-999c-6e3559ea0cec.mp3",
+    "UploadDate": "2025-04-20T14:18:32.9458777+08:00",
+    "Duration": "0:00",
+    "IsRecording": true,
+    "Artist": null,
+    "UserTag": null,
+    "Location": "Unknown",
+    "ImageUrl": "/images/default-album-cover.jpg"
+  },
+  {
+    "Id": "3727c555-6081-4967-8cca-12fe037f3771",
+    "Name": "keshi ulit",
+    "FilePath": "Data\\UploadedSongs\\2d073107-e915-4920-bd9a-946c22a1b83c.mp3",
+    "UploadDate": "2025-04-20T14:18:41.5296632+08:00",
+    "Duration": "0:00",
+    "IsRecording": false,
+    "Artist": null,
+    "UserTag": null,
+    "Location": "Unknown",
+    "ImageUrl": "/images/default-album-cover.jpg"
   }
 ]

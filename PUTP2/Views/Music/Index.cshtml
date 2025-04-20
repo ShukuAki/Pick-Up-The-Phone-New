@@ -1,51 +1,278 @@
-@model IEnumerable<PUTP2.Models.Track>
+@model PUTP2.Models.PlaylistViewModel
+
 @{
-    Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewData["Title"] = "the vault";
+    ViewData["Title"] = "The Vault";
+    ViewData["HidePlayerBar"] = "true";
 }
 
 <div class="vault-container">
-    <h1 class="vault-title">the vault</h1>
+    <a href="/Music/Profile" class="profile-button">
+        <i class="fas fa-user"></i>
+    </a>
+
+    <h1 class="vault-title">The Vault</h1>
     
-    <div class="vinyl-covers-grid">
-        @if (ViewBag.Playlists != null && ViewBag.Playlists.Count > 0)
-        {
-            @foreach (var playlist in ViewBag.Playlists)
-            {
-                <div class="vinyl-cover-container">
-                    <a asp-controller="Music" asp-action="Playlist" asp-route-id="@playlist.Id" class="vinyl-cover-link">
-                        <div class="vinyl-cover">
-                            <div class="vinyl-disc"></div>
-                            <div class="cover-sleeve">
-                                <div class="playlist-info">
-                                    <h2>@playlist.Title</h2>
-                                    <p>@playlist.TrackCount tracks • @playlist.Duration</p>
+    @if (ViewBag.Playlists != null)
+    {
+        <div class="playlist-cards-container">
+            <div class="playlist-cards-grid">
+                @{
+                    var playlists = ViewBag.Playlists as IEnumerable<PUTP2.Models.PlaylistInfo>;
+                    foreach (var playlist in playlists)
+                    {
+                        <div class="playlist-card-wrapper" data-playlist-id="@playlist.Id">
+                            <div class="playlist-card" data-level="@playlist.Level">
+                                <div class="playlist-card-inner">
+                                    <div class="playlist-card-front">
+                                        <div class="level-pattern"></div>
+                                    </div>
+                                    <div class="playlist-card-back">
+                                        <div class="playlist-info">
+                                            <h2>@playlist.Title</h2>
+                                            <p>@playlist.TrackCount tracks • @playlist.Duration</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
+                            <button class="delete-playlist-btn" onclick="deletePlaylist('@playlist.Id', '@playlist.Title')">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </div>
-                    </a>
-                    <button class="delete-playlist-btn" onclick="deletePlaylist('@playlist.Id', '@playlist.Title')">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-            }
-        }
-        else
-        {
-            <div class="empty-state">
-                <i class="fas fa-music"></i>
-                <p>No playlists yet. Create one to get started!</p>
-                <a asp-controller="Music" asp-action="Upload" class="create-playlist-btn">Create Playlist</a>
+                    }
+                }
             </div>
-        }
-    </div>
+        </div>
+    }
+
+    <a href="/Home/TuneInSplash" class="switch-view-button">
+        <i class="fas fa-broadcast-tower"></i>
+        <span>tune in</span>
+    </a>
+
+    <a href="/Music/Upload" class="upload-button">
+        <i class="fas fa-plus"></i>
+    </a>
 </div>
 
 @section Styles {
     <style>
-        .vinyl-cover-container {
+        /* Hide the footer bar */
+        .footer-nav {
+            display: none !important;
+        }
+
+        .profile-button {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            color: var(--text-primary);
+            font-size: 18px;
+            text-decoration: none;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.5);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .profile-button:hover {
+            background: rgba(0, 0, 0, 0.7);
+            transform: scale(1.1);
+        }
+
+        .vault-container {
             position: relative;
-            display: inline-block;
+            padding: 20px;
+            padding-top: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .vault-title {
+            text-align: center;
+            margin-top: 20px;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            color: var(--text-primary);
+        }
+
+        .playlist-cards-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .playlist-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .playlist-card-wrapper {
+            width: 200px;
+            height: 280px;
+            perspective: 1000px;
+            cursor: pointer;
+            position: relative;
+            background: transparent;
+        }
+
+        .playlist-card {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            cursor: pointer;
+            background: transparent;
+        }
+
+        .playlist-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 2s ease;
+            transform-style: preserve-3d;
+        }
+
+        .playlist-card-wrapper:hover .playlist-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .playlist-card-front, .playlist-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: transparent;
+        }
+
+        .playlist-card-front {
+            background: transparent;
+        }
+
+        .playlist-card-back {
+            transform: rotateY(180deg);
+            padding: 20px;
+        }
+
+        .level-pattern {
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        /* Level 1 playlists */
+        [data-level="1"] .level-pattern {
+            background-image: url('/images/level 01-pattern.jpg');
+        }
+
+        [data-level="1"] .playlist-card-front,
+        [data-level="1"] .playlist-card-back {
+            border: 2px solid #ffa07a;
+        }
+
+        [data-level="1"] .playlist-card-back {
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(139, 115, 85, 0.8));
+        }
+
+        /* Level 2 playlists */
+        [data-level="2"] .level-pattern {
+            background-image: url('/images/level 02-pattern.jpg');
+        }
+
+        [data-level="2"] .playlist-card-front,
+        [data-level="2"] .playlist-card-back {
+            border: 2px solid #45b7d1;
+        }
+
+        [data-level="2"] .playlist-card-back {
+            background: linear-gradient(135deg, rgba(255, 75, 75, 0.8), rgba(139, 115, 85, 0.8));
+        }
+
+        /* Level 3 playlists */
+        [data-level="3"] .level-pattern {
+            background-image: url('/images/level3.jpg');
+        }
+
+        [data-level="3"] .playlist-card-front,
+        [data-level="3"] .playlist-card-back {
+            border: 2px solid #c084fc;
+        }
+
+        [data-level="3"] .playlist-card-back {
+            background: linear-gradient(135deg, rgba(167, 139, 250, 0.8), rgba(192, 132, 252, 0.8));
+        }
+
+        @@media (max-width: 768px) {
+            .playlist-cards-container {
+                width: 100%;
+                overflow: hidden;
+            }
+
+            .playlist-cards-grid {
+                display: flex;
+                overflow-x: auto;
+                scroll-snap-type: x mandatory;
+                -webkit-overflow-scrolling: touch;
+                padding: 20px;
+                gap: 20px;
+                width: 100%;
+                align-items: center;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+            }
+
+            .playlist-cards-grid::-webkit-scrollbar {
+                display: none;
+            }
+
+            .playlist-card-wrapper {
+                flex: 0 0 280px;
+                width: 280px;
+                height: 380px;
+                scroll-snap-align: center;
+                transform: scale(0.85);
+                opacity: 0.5;
+                transition: all 0.3s ease;
+            }
+
+            .playlist-card-wrapper.active {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .playlist-info {
+            text-align: center;
+            color: var(--text-primary);
+        }
+
+        .playlist-info h2 {
+            margin: 0;
+            font-size: 24px;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            margin-bottom: 10px;
+        }
+
+        .playlist-info p {
+            margin: 5px 0 0;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
         }
 
         .delete-playlist-btn {
@@ -67,7 +294,7 @@
             z-index: 10;
         }
 
-        .vinyl-cover-container:hover .delete-playlist-btn {
+        .playlist-card-wrapper:hover .delete-playlist-btn {
             opacity: 1;
         }
 
@@ -75,74 +302,71 @@
             background: rgba(255, 0, 0, 0.9);
         }
 
-        .delete-playlist-btn i {
-            font-size: 14px;
-        }
-
-        /* Confirmation Modal Styles */
-        .modal {
+        body[data-hide-player="true"] .player-bar {
             display: none;
+        }
+
+        .switch-view-button {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 1000;
-        }
-
-        .modal-content {
-            position: absolute;
-            top: 50%;
+            bottom: 80px;
             left: 50%;
-            transform: translate(-50%, -50%);
-            background: var(--bg-card);
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-            max-width: 400px;
-            width: 90%;
-        }
-
-        .modal-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .modal-buttons button {
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.5);
+            color: var(--text-primary);
+            text-decoration: none;
             padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            z-index: 999;
         }
 
-        .confirm-delete {
-            background: #dc3545;
-            color: white;
-            border: none;
+        .switch-view-button:hover {
+            background: rgba(0, 0, 0, 0.7);
+            transform: translateX(-50%) scale(1.05);
+            color: var(--text-primary);
         }
 
-        .cancel-delete {
-            background: #6c757d;
-            color: white;
-            border: none;
+        .switch-view-button i {
+            font-size: 16px;
+        }
+
+        .upload-button {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            color: var(--text-primary);
+            text-decoration: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            z-index: 999;
+        }
+
+        .upload-button:hover {
+            background: rgba(0, 0, 0, 0.7);
+            transform: scale(1.1);
+            color: var(--text-primary);
+        }
+
+        /* Remove footer-related styles */
+        .content-wrapper {
+            height: 100vh;
         }
     </style>
 }
 
 @section Scripts {
     <script>
-        function playPlaylist(id) {
-            // Add your playlist playing logic here
-            console.log(`Playing playlist ${id}`);
-            enablePlayerControls();
-            // Update player info based on the playlist
-            document.getElementById('currentTrackName').textContent = 'Playing from playlist';
-            document.getElementById('currentArtistName').textContent = `Playlist ${id}`;
-        }
-
-        // Delete playlist functionality
         function deletePlaylist(id, title) {
             const modal = document.createElement('div');
             modal.className = 'modal';
@@ -179,20 +403,12 @@
 
                 const result = await response.json();
                 if (result.success) {
-                    // Remove the playlist card from the DOM
                     const playlistCard = document.querySelector(`[data-playlist-id="${id}"]`);
                     if (playlistCard) {
                         playlistCard.remove();
                     }
-                    
-                    // Show success message
                     alert('Playlist deleted successfully!');
-                    
-                    // Reload the page if no playlists are left
-                    const remainingPlaylists = document.querySelectorAll('.vinyl-cover-container').length;
-                    if (remainingPlaylists === 0) {
-                        window.location.reload();
-                    }
+                    window.location.reload();
                 } else {
                     alert('Error deleting playlist: ' + result.message);
                 }
@@ -203,12 +419,63 @@
             }
         }
 
-        // Close modal when clicking outside
         document.addEventListener('click', function(event) {
             const modal = document.querySelector('.modal');
             if (modal && event.target === modal) {
                 closeModal();
             }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.matchMedia('(max-width: 768px)').matches) {
+                const container = document.querySelector('.playlist-cards-grid');
+                const cards = Array.from(container.querySelectorAll('.playlist-card-wrapper'));
+                
+                function updateActiveCard() {
+                    const middle = container.scrollLeft + (container.offsetWidth / 2);
+                    let closestCard = null;
+                    let closestDistance = Infinity;
+                    
+                    cards.forEach(card => {
+                        const cardMiddle = card.offsetLeft + (card.offsetWidth / 2);
+                        const distance = Math.abs(middle - cardMiddle);
+                        
+                        if (distance < closestDistance) {
+                            closestDistance = distance;
+                            closestCard = card;
+                        }
+                        
+                        card.classList.remove('active');
+                    });
+                    
+                    if (closestCard) {
+                        closestCard.classList.add('active');
+                    }
+                }
+
+                // Handle scroll events
+                let scrollTimeout;
+                container.addEventListener('scroll', () => {
+                    clearTimeout(scrollTimeout);
+                    scrollTimeout = setTimeout(updateActiveCard, 100);
+                }, { passive: true });
+
+                // Initial setup
+                updateActiveCard();
+                
+                // Handle window resize
+                window.addEventListener('resize', updateActiveCard, { passive: true });
+            }
+
+            // Click handler for playlist navigation
+            const cards = document.querySelectorAll('.playlist-card-wrapper');
+            cards.forEach(card => {
+                card.addEventListener('click', function(e) {
+                    if (e.target.closest('.delete-playlist-btn')) return;
+                    const playlistId = this.dataset.playlistId;
+                    window.location.href = `/Music/Playlist/${playlistId}`;
+                });
+            });
         });
     </script>
 } 

@@ -9,17 +9,44 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     @await RenderSectionAsync("Styles", required: false)
 </head>
-<body data-hide-player="@(ViewData["HidePlayerBar"]?.ToString()?.ToLower() ?? "false")" data-theme="dark">
-    <button class="theme-toggle" onclick="toggleTheme()">
-        <i class="fas fa-moon"></i>
-    </button>
-
+<body data-hide-player="@(ViewData["HidePlayerBar"]?.ToString()?.ToLower() ?? "false")">
     <!-- Main Content -->
     <main role="main" class="main-content">
         @RenderBody()
     </main>
 
-    
+    <!-- Player Bar -->
+    @if (ViewData["HidePlayerBar"]?.ToString()?.ToLower() != "true")
+    {
+        <div class="player-bar">
+            <div class="container-fluid">
+                <div class="row justify-content-center">
+                    <div class="col-12 col-md-8 col-lg-6">
+                        <div class="player-content text-center">
+                            <div class="track-info mb-2 empty">
+                                <div class="track-name" id="currentTrackName"></div>
+                                <div class="artist-name" id="currentArtistName"></div>
+                            </div>
+                            <div class="player-controls">
+                                <button class="btn btn-link disabled" id="prevBtn">
+                                    <i class="fas fa-step-backward"></i>
+                                </button>
+                                <button class="btn btn-link btn-lg disabled" id="playPauseBtn">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                                <button class="btn btn-link disabled" id="nextBtn">
+                                    <i class="fas fa-step-forward"></i>
+                                </button>
+                            </div>
+                            <div class="progress disabled" id="progressBar">
+                                <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 
     <!-- Footer Navigation -->
     <nav class="footer-nav">
@@ -75,27 +102,6 @@
             document.getElementById('currentTrackName').textContent = '';
             document.getElementById('currentArtistName').textContent = '';
         }
-
-        function toggleTheme() {
-            const body = document.body;
-            const icon = document.querySelector('.theme-toggle i');
-            const currentTheme = body.getAttribute('data-theme');
-            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-            
-            body.setAttribute('data-theme', newTheme);
-            icon.className = newTheme === 'light' ? 'fas fa-sun' : 'fas fa-moon';
-            
-            localStorage.setItem('theme', newTheme);
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const savedTheme = localStorage.getItem('theme') || 'dark';
-            const body = document.body;
-            const icon = document.querySelector('.theme-toggle i');
-            
-            body.setAttribute('data-theme', savedTheme);
-            icon.className = savedTheme === 'light' ? 'fas fa-sun' : 'fas fa-moon';
-        });
     </script>
 
     @await RenderSectionAsync("Scripts", required: false)

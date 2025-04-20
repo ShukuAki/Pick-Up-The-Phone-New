@@ -12,5 +12,6 @@ namespace PUTP2.Models
         public int TrackCount { get; set; }
         public string Duration { get; set; }
         public DateTime CreatedDate { get; set; }
+        public int Level { get; set; } = 1; // Default to Level 1
     }
 } 

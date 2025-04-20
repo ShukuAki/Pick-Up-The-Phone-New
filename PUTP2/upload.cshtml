@@ -1,8 +1,8 @@
 @page
-@model UploadModel
+@model PUTP2.Models.UploadViewModel
 @{
     ViewData["Title"] = "Upload";
-    var playlistId = Request.Query["playlistId"].ToString();
+    var playlistId = Model.SelectedPlaylistId;
 }
 
 <div class="container">

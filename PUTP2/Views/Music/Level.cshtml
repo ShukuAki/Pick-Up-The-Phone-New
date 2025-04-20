@@ -1,0 +1,322 @@
+@model IEnumerable<PUTP2.Models.Track>
+
+@{
+    ViewData["Title"] = $"Level {ViewBag.Level}";
+}
+
+<div class="vault-container">
+    <h1 class="vault-title">Level @ViewBag.Level</h1>
+    
+    <div class="playlist-cards-grid">
+        @if (ViewBag.Playlists != null)
+        {
+            foreach (var playlist in ViewBag.Playlists)
+            {
+                if (playlist.Level == ViewBag.Level)
+                {
+                    <div class="playlist-card-wrapper" data-playlist-id="@playlist.Id">
+                        <div class="playlist-card" data-level="@ViewBag.Level">
+                            <div class="playlist-card-inner">
+                                <div class="playlist-card-front">
+                                    <div class="level-pattern"></div>
+                                </div>
+                                <div class="playlist-card-back">
+                                    <div class="playlist-info">
+                                        <h2>@playlist.Title</h2>
+                                        <p>@playlist.TrackCount tracks • @playlist.Duration</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="delete-playlist-btn" onclick="deletePlaylist('@playlist.Id', '@playlist.Title')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                }
+            }
+        }
+        else
+        {
+            <div class="empty-state">
+                <i class="fas fa-music"></i>
+                <p>No playlists in this level yet.</p>
+                <a asp-controller="Music" asp-action="Upload" class="create-playlist-btn">Create Playlist</a>
+            </div>
+        }
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .vault-container {
+            padding: 20px;
+        }
+
+        .vault-title {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            color: var(--text-primary);
+        }
+
+        .playlist-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .playlist-card-wrapper {
+            width: 200px;
+            height: 280px;
+            perspective: 1000px;
+            cursor: pointer;
+            position: relative;
+            background: transparent;
+        }
+
+        .playlist-card {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            cursor: pointer;
+            background: transparent;
+        }
+
+        .playlist-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 2s ease;
+            transform-style: preserve-3d;
+        }
+
+        .playlist-card-wrapper:hover .playlist-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .playlist-card-front, .playlist-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: transparent;
+        }
+
+        .playlist-card-front {
+            background: transparent;
+        }
+
+        .playlist-card-back {
+            transform: rotateY(180deg);
+            padding: 20px;
+        }
+
+        .level-pattern {
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        /* Level 1 playlists */
+        [data-level="1"] .level-pattern {
+            background-image: url('/images/level 01-pattern.jpg');
+        }
+
+        [data-level="1"] .playlist-card-front,
+        [data-level="1"] .playlist-card-back {
+            border: 2px solid #ffa07a;
+        }
+
+        [data-level="1"] .playlist-card-back {
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(139, 115, 85, 0.8));
+        }
+
+        /* Level 2 playlists */
+        [data-level="2"] .level-pattern {
+            background-image: url('/images/level 02-pattern.jpg');
+        }
+
+        [data-level="2"] .playlist-card-front,
+        [data-level="2"] .playlist-card-back {
+            border: 2px solid #45b7d1;
+        }
+
+        [data-level="2"] .playlist-card-back {
+            background: linear-gradient(135deg, rgba(255, 75, 75, 0.8), rgba(139, 115, 85, 0.8));
+        }
+
+        /* Level 3 playlists */
+        [data-level="3"] .level-pattern {
+            background-image: url('/images/level3.jpg');
+        }
+
+        [data-level="3"] .playlist-card-front,
+        [data-level="3"] .playlist-card-back {
+            border: 2px solid #c084fc;
+        }
+
+        [data-level="3"] .playlist-card-back {
+            background: linear-gradient(135deg, rgba(167, 139, 250, 0.8), rgba(192, 132, 252, 0.8));
+        }
+
+        .playlist-info {
+            text-align: center;
+            color: var(--text-primary);
+        }
+
+        .playlist-info h2 {
+            margin: 0;
+            font-size: 24px;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            margin-bottom: 10px;
+        }
+
+        .playlist-info p {
+            margin: 5px 0 0;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .delete-playlist-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 0, 0, 0.7);
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+        }
+
+        .playlist-card-wrapper:hover .delete-playlist-btn {
+            opacity: 1;
+        }
+
+        .delete-playlist-btn:hover {
+            background: rgba(255, 0, 0, 0.9);
+        }
+
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .create-playlist-btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background 0.3s ease;
+        }
+
+        .create-playlist-btn:hover {
+            background: var(--primary-color-dark);
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        function deletePlaylist(id, title) {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <h3>Delete Playlist</h3>
+                    <p>Are you sure you want to delete "${title}"?</p>
+                    <p>This action cannot be undone.</p>
+                    <div class="modal-buttons">
+                        <button class="confirm-delete" onclick="confirmDelete('${id}')">Delete</button>
+                        <button class="cancel-delete" onclick="closeModal()">Cancel</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.style.display = 'block';
+        }
+
+        function closeModal() {
+            const modal = document.querySelector('.modal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        async function confirmDelete(id) {
+            try {
+                const response = await fetch(`/Music/DeletePlaylist?id=${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    const playlistCard = document.querySelector(`[data-playlist-id="${id}"]`);
+                    if (playlistCard) {
+                        playlistCard.remove();
+                    }
+                    alert('Playlist deleted successfully!');
+                    window.location.reload();
+                } else {
+                    alert('Error deleting playlist: ' + result.message);
+                }
+            } catch (error) {
+                alert('Error deleting playlist: ' + error.message);
+            } finally {
+                closeModal();
+            }
+        }
+
+        document.addEventListener('click', function(event) {
+            const modal = document.querySelector('.modal');
+            if (modal && event.target === modal) {
+                closeModal();
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.playlist-card-wrapper');
+            
+            cards.forEach(card => {
+                card.addEventListener('click', function(e) {
+                    // Don't trigger if clicking delete button
+                    if (e.target.closest('.delete-playlist-btn')) return;
+                    
+                    const playlistId = this.dataset.playlistId;
+                    window.location.href = `/Music/Playlist/${playlistId}`;
+                });
+            });
+        });
+    </script>
+} 

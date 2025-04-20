@@ -6,303 +6,241 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Http;
 using PUTP2.Models;
+using System.Linq;
 
-public class UploadModel : PageModel
+namespace PUTP2.Pages
 {
-    private readonly string uploadsPath = Path.Combine("Data", "UploadedSongs");
-    private readonly string tracksJsonPath = Path.Combine("Data", "tracks.json");
-    private readonly string playlistsPath = Path.Combine("Data", "playlists.json");
-    private readonly string playlistCoversPath = Path.Combine("wwwroot", "images", "playlist-covers");
-    private const string PlaylistFileName = "wwwroot/data/playlists.json";
-    private readonly IWebHostEnvironment _env;
-    public void OnGet()
+    public class UploadModel : PageModel
     {
-        var path = Path.Combine(_env.ContentRootPath, PlaylistFileName);
-        if (System.IO.File.Exists(path))
+        private readonly string uploadsPath = Path.Combine("Data", "UploadedSongs");
+        private readonly string tracksJsonPath = Path.Combine("Data", "tracks.json");
+        private readonly string playlistsPath = Path.Combine("Data", "playlists.json");
+        private readonly string playlistCoversPath = Path.Combine("wwwroot", "images", "playlist-covers");
+        private const string PlaylistFileName = "wwwroot/data/playlists.json";
+        private readonly IWebHostEnvironment _env;
+
+        public List<PlaylistInfo> Playlists { get; set; }
+
+        public void OnGet()
         {
-            var json = System.IO.File.ReadAllText(path);
-            Playlists = JsonSerializer.Deserialize<List<PlaylistInfo>>(json);
+            try
+            {
+                var playlistsJson = System.IO.File.ReadAllText(playlistsPath);
+                Playlists = JsonSerializer.Deserialize<List<PlaylistInfo>>(playlistsJson) ?? new List<PlaylistInfo>();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading playlists: {ex.Message}");
+                Playlists = new List<PlaylistInfo>();
+            }
         }
-        else
+
+        public async Task<IActionResult> OnPostUploadTrackAsync()
         {
-            Playlists = new List<PlaylistInfo>();
-        }   
-    }
-
-    public async Task<IActionResult> OnPostUploadTrackAsync()
-    {
-        try
-        {
-            var file = Request.Form.Files["trackFile"];
-            var trackName = Request.Form["trackName"].ToString();
-            var artist = Request.Form["artist"].ToString();
-
-            if (file == null || file.Length == 0)
-                return BadRequest("No file uploaded");
-
-            // Create directories if they don't exist
-            Directory.CreateDirectory(uploadsPath);
-
-            // Generate unique filename
-            var fileName = $"{Guid.NewGuid()}.mp3";
-            var filePath = Path.Combine(uploadsPath, fileName);
-
-            // Save the file
-            using (var stream = new FileStream(filePath, FileMode.Create))
+            try
             {
-                await file.CopyToAsync(stream);
-            }
+                var file = Request.Form.Files["trackFile"];
+                var trackName = Request.Form["trackName"].ToString();
+                var artist = Request.Form["artist"].ToString();
 
-            // Update tracks.json
-            var trackInfo = new TrackInfo
-            {
-                Id = Guid.NewGuid().ToString(),
-                Name = trackName,
-                Artist = artist,
-                FilePath = filePath,
-                UploadDate = DateTime.Now
-            };
+                if (file == null || file.Length == 0)
+                    return BadRequest("No file uploaded");
 
-            var tracks = new List<TrackInfo>();
-            if (System.IO.File.Exists(tracksJsonPath))
-            {
-                var json = await System.IO.File.ReadAllTextAsync(tracksJsonPath);
-                tracks = JsonSerializer.Deserialize<List<TrackInfo>>(json) ?? new List<TrackInfo>();
-            }
+                // Create directories if they don't exist
+                Directory.CreateDirectory(uploadsPath);
 
-            tracks.Add(trackInfo);
-            await System.IO.File.WriteAllTextAsync(tracksJsonPath, 
-                JsonSerializer.Serialize(tracks, new JsonSerializerOptions { WriteIndented = true }));
+                // Generate unique filename
+                var fileName = $"{Guid.NewGuid()}.mp3";
+                var filePath = Path.Combine(uploadsPath, fileName);
 
-            return new JsonResult(new { success = true });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
-    }
-
-    public async Task<JsonResult> OnPostSaveRecordingAsync()
-    {
-        try
-        {
-            var file = Request.Form.Files["audioFile"];
-            var trackName = Request.Form["trackName"].ToString();
-            var playlistId = Request.Form["playlistId"].ToString();
-
-            if (string.IsNullOrEmpty(playlistId))
-                return new JsonResult(new { success = false, message = "Playlist ID is required" });
-
-            if (file == null || file.Length == 0)
-                return new JsonResult(new { success = false, message = "No recording data received" });
-
-            // Create directories if they don't exist
-            Directory.CreateDirectory(uploadsPath);
-
-            // Generate unique filename
-            var fileName = $"recording_{Guid.NewGuid()}.mp3";
-            var filePath = Path.Combine(uploadsPath, fileName);
-
-            // Save the recording
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await file.CopyToAsync(stream);
-            }
-
-            // Create track info
-            var trackId = Guid.NewGuid().ToString();
-            var trackInfo = new TrackInfo
-            {
-                Id = trackId,
-                Name = trackName,
-                FilePath = filePath,
-                UploadDate = DateTime.Now,
-                IsRecording = true
-            };
-
-            // Update tracks.json
-            var tracks = new List<TrackInfo>();
-            if (System.IO.File.Exists(tracksJsonPath))
-            {
-                var json = await System.IO.File.ReadAllTextAsync(tracksJsonPath);
-                tracks = JsonSerializer.Deserialize<List<TrackInfo>>(json) ?? new List<TrackInfo>();
-            }
-            tracks.Add(trackInfo);
-            await System.IO.File.WriteAllTextAsync(tracksJsonPath, 
-                JsonSerializer.Serialize(tracks, new JsonSerializerOptions { WriteIndented = true }));
-
-            // Update playlist.json
-            var playlists = new List<PlaylistInfo>();
-            if (System.IO.File.Exists(playlistsPath))
-            {
-                var json = await System.IO.File.ReadAllTextAsync(playlistsPath);
-                playlists = JsonSerializer.Deserialize<List<PlaylistInfo>>(json) ?? new List<PlaylistInfo>();
-            }
-
-            var playlist = playlists.FirstOrDefault(p => p.Id == playlistId);
-            if (playlist != null)
-            {
-                playlist.Tracks ??= new List<string>();
-                playlist.Tracks.Add(trackId);
-                playlist.TrackCount = playlist.Tracks.Count;
-                await System.IO.File.WriteAllTextAsync(playlistsPath, 
-                    JsonSerializer.Serialize(playlists, new JsonSerializerOptions { WriteIndented = true }));
-            }
-
-            return new JsonResult(new { success = true });
-        }
-        catch (Exception ex)
-        {
-            return new JsonResult(new { success = false, message = ex.Message });
-        }
-    }
-
-    public JsonResult OnPostCreatePlaylist([FromForm] string title, IFormFile coverFile = null)
-    {
-        try
-        {
-            string coverUrl = "/images/default-playlist.jpg";
-            
-            if (coverFile != null && coverFile.Length > 0)
-            {
-                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "playlists");
-                Directory.CreateDirectory(uploadsFolder);
-
-                var uniqueFileName = $"{Guid.NewGuid()}_{coverFile.FileName}";
-                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-                
+                // Save the file
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
-                    coverFile.CopyTo(stream);
+                    await file.CopyToAsync(stream);
                 }
 
-                coverUrl = $"/uploads/playlists/{uniqueFileName}";
+                // Update tracks.json
+                var trackInfo = new TrackInfo
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Name = trackName,
+                    Artist = artist,
+                    FilePath = filePath,
+                    UploadDate = DateTime.Now
+                };
+
+                var tracks = new List<TrackInfo>();
+                if (System.IO.File.Exists(tracksJsonPath))
+                {
+                    var json = await System.IO.File.ReadAllTextAsync(tracksJsonPath);
+                    tracks = JsonSerializer.Deserialize<List<TrackInfo>>(json) ?? new List<TrackInfo>();
+                }
+
+                tracks.Add(trackInfo);
+                await System.IO.File.WriteAllTextAsync(tracksJsonPath, 
+                    JsonSerializer.Serialize(tracks, new JsonSerializerOptions { WriteIndented = true }));
+
+                return new JsonResult(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        public async Task<JsonResult> OnPostSaveRecordingAsync()
+        {
+            try
+            {
+                var file = Request.Form.Files["audioFile"];
+                var trackName = Request.Form["trackName"].ToString();
+                var playlistId = Request.Form["playlistId"].ToString();
+
+                if (string.IsNullOrEmpty(playlistId))
+                    return new JsonResult(new { success = false, message = "Playlist ID is required" });
+
+                if (file == null || file.Length == 0)
+                    return new JsonResult(new { success = false, message = "No recording data received" });
+
+                // Create directories if they don't exist
+                Directory.CreateDirectory(uploadsPath);
+
+                // Generate unique filename
+                var fileName = $"recording_{Guid.NewGuid()}.mp3";
+                var filePath = Path.Combine(uploadsPath, fileName);
+
+                // Save the recording
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                // Create track info
+                var trackId = Guid.NewGuid().ToString();
+                var trackInfo = new TrackInfo
+                {
+                    Id = trackId,
+                    Name = trackName,
+                    FilePath = filePath,
+                    UploadDate = DateTime.Now,
+                    IsRecording = true
+                };
+
+                // Update tracks.json
+                var tracks = new List<TrackInfo>();
+                if (System.IO.File.Exists(tracksJsonPath))
+                {
+                    var json = await System.IO.File.ReadAllTextAsync(tracksJsonPath);
+                    tracks = JsonSerializer.Deserialize<List<TrackInfo>>(json) ?? new List<TrackInfo>();
+                }
+                tracks.Add(trackInfo);
+                await System.IO.File.WriteAllTextAsync(tracksJsonPath, 
+                    JsonSerializer.Serialize(tracks, new JsonSerializerOptions { WriteIndented = true }));
+
+                // Update playlist.json
+                var playlists = new List<PlaylistInfo>();
+                if (System.IO.File.Exists(playlistsPath))
+                {
+                    var json = await System.IO.File.ReadAllTextAsync(playlistsPath);
+                    playlists = JsonSerializer.Deserialize<List<PlaylistInfo>>(json) ?? new List<PlaylistInfo>();
+                }
+
+                var playlist = playlists.FirstOrDefault(p => p.Id == playlistId);
+                if (playlist != null)
+                {
+                    playlist.Tracks ??= new List<string>();
+                    playlist.Tracks.Add(trackId);
+                    playlist.TrackCount = playlist.Tracks.Count;
+                    await System.IO.File.WriteAllTextAsync(playlistsPath, 
+                        JsonSerializer.Serialize(playlists, new JsonSerializerOptions { WriteIndented = true }));
+                }
+
+                return new JsonResult(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new { success = false, message = ex.Message });
+            }
+        }
+
+        public IActionResult OnPostCreatePlaylist(string title)
+        {
+            try
+            {
+                var playlists = new List<PlaylistInfo>();
+                if (System.IO.File.Exists(playlistsPath))
+                {
+                    var playlistsJson = System.IO.File.ReadAllText(playlistsPath);
+                    playlists = JsonSerializer.Deserialize<List<PlaylistInfo>>(playlistsJson) ?? new List<PlaylistInfo>();
+                }
+
+                var newPlaylist = new PlaylistInfo
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Title = title,
+                    Tracks = new List<string>(),
+                    CreatedDate = DateTime.Now
+                };
+
+                playlists.Add(newPlaylist);
+                System.IO.File.WriteAllText(playlistsPath, JsonSerializer.Serialize(playlists));
+
+                return new JsonResult(new { success = true, playlist = newPlaylist });
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new { success = false, message = ex.Message });
+            }
+        }
+
+        public UploadModel(IWebHostEnvironment env)
+        {
+            _env = env;
+        }
+
+        public class CreatePlaylistRequest
+        {
+            public string Title { get; set; }
+        }
+
+        public IActionResult OnPostCreatePlaylist([FromBody] CreatePlaylistRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Title))
+            {
+                return new JsonResult(new { success = false, message = "Title is required." });
             }
 
-            // Read existing playlists
-            List<PlaylistInfo> playlists;
-            if (System.IO.File.Exists(playlistsPath))
+            var path = Path.Combine(_env.ContentRootPath, PlaylistFileName);
+            var playlists = new List<PlaylistInfo>();
+
+            if (System.IO.File.Exists(path))
             {
-                var json = System.IO.File.ReadAllText(playlistsPath);
-                playlists = JsonSerializer.Deserialize<List<PlaylistInfo>>(json) ?? new List<PlaylistInfo>();
-            }
-            else
-            {
-                playlists = new List<PlaylistInfo>();
+                var json = System.IO.File.ReadAllText(path);
+                playlists = JsonSerializer.Deserialize<List<PlaylistInfo>>(json);
             }
 
-            string newId = Guid.NewGuid().ToString();
+            var newId = (playlists.Any() ? playlists.Max(p => int.Parse(p.Id)) + 1 : 1).ToString();
 
             var newPlaylist = new PlaylistInfo
             {
                 Id = newId,
-                Title = title,
-                CoverUrl = coverUrl,
-                Tracks = new List<string>(),
-                CreatedDate = DateTime.Now,
+                Title = request.Title,
+                CoverUrl = "/images/default-playlist.jpg",
                 TrackCount = 0,
                 Duration = "0:00",
-                Action = $"Playlist{newId}"
+                CreatedDate = DateTime.UtcNow
             };
 
             playlists.Add(newPlaylist);
+            var updatedJson = JsonSerializer.Serialize(playlists, new JsonSerializerOptions { WriteIndented = true });
+            System.IO.File.WriteAllText(path, updatedJson);
 
-            // Save updated playlists
-            var jsonOutput = JsonSerializer.Serialize(playlists, new JsonSerializerOptions 
-            { 
-                WriteIndented = true 
-            });
-            System.IO.File.WriteAllText(playlistsPath, jsonOutput);
-
-            return new JsonResult(new { success = true, playlist = newPlaylist });
-        }
-        catch (Exception ex)
-        {
-            return new JsonResult(new { success = false, message = ex.Message });
+            return new JsonResult(new { success = true });
         }
     }
 
-    public UploadModel(IWebHostEnvironment env)
-    {
-        _env = env;
-    }
-
-    [BindProperty]
-    public List<PlaylistInfo> Playlists { get; set; }
-
-
-    public class CreatePlaylistRequest
+    public class PlaylistCreateRequest
     {
         public string Title { get; set; }
-    }
-
-    public IActionResult OnPostCreatePlaylist([FromBody] CreatePlaylistRequest request)
-    {
-        if (string.IsNullOrWhiteSpace(request.Title))
-        {
-            return new JsonResult(new { success = false, message = "Title is required." });
-        }
-
-        var path = Path.Combine(_env.ContentRootPath, PlaylistFileName);
-        var playlists = new List<PlaylistInfo>();
-
-        if (System.IO.File.Exists(path))
-        {
-            var json = System.IO.File.ReadAllText(path);
-            playlists = JsonSerializer.Deserialize<List<PlaylistInfo>>(json);
-        }
-
-        var newId = (playlists.Any() ? playlists.Max(p => int.Parse(p.Id)) + 1 : 1).ToString();
-
-        var newPlaylist = new PlaylistInfo
-        {
-            Id = newId,
-            Title = request.Title,
-            CoverUrl = "/images/default-playlist.jpg",
-            TrackCount = 0,
-            Duration = "0:00",
-            Action = null,
-            CreatedDate = DateTime.UtcNow
-        };
-
-        playlists.Add(newPlaylist);
-        var updatedJson = JsonSerializer.Serialize(playlists, new JsonSerializerOptions { WriteIndented = true });
-        System.IO.File.WriteAllText(path, updatedJson);
-
-        return new JsonResult(new { success = true });
-    }
-
-
-}
-
-
-public class PlaylistCreateRequest
-{
-    public string Title { get; set; }
-}
-public class TrackInfo
-{
-    public string Id { get; set; }
-    public string Name { get; set; }
-    public string Artist { get; set; }
-    public string FilePath { get; set; }
-    public DateTime UploadDate { get; set; }
-    public bool IsRecording { get; set; }
-}
-
-public class PlaylistInfo
-{
-    public string Id { get; set; }
-    public string Title { get; set; }
-    public string CoverUrl { get; set; }
-    public List<string> Tracks { get; set; }
-    public int TrackCount { get; set; }
-    public string Duration { get; set; }
-    public string Action { get; set; }
-    public DateTime CreatedDate { get; set; }
-
-    public PlaylistInfo()
-    {
-        Tracks = new List<string>();
     }
 } 

@@ -1,0 +1,385 @@
+@page
+@model PUTP2.Models.UploadViewModel
+@{
+    ViewData["Title"] = "Upload";
+    var playlistId = Model.SelectedPlaylistId;
+}
+
+<div class="container">
+    <input type="hidden" id="playlistId" value="@playlistId" />
+
+    <div class="recording-section mb-4">
+        <h3>Record Track</h3>
+        <div class="form-group">
+            <input type="text" class="form-control mb-2" id="recordingName" placeholder="Enter track name">
+        </div>
+        <div class="controls">
+            <button id="startRecording" class="btn btn-primary">Start Recording</button>
+            <button id="stopRecording" class="btn btn-danger" disabled>Stop Recording</button>
+        </div>
+        <div id="recordingStatus" class="mt-2"></div>
+        <audio id="audioPlayback" controls style="display: none;" class="mt-2"></audio>
+    </div>
+
+    <div class="upload-section mt-4">
+        <h3>Or Upload MP3</h3>
+        <form id="uploadForm" method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="playlistId" value="@playlistId" />
+            
+            <div class="form-group">
+                <label for="trackFile">Select MP3 File:</label>
+                <input type="file" class="form-control-file" id="trackFile" name="trackFile" accept=".mp3" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="trackName">Track Name:</label>
+                <input type="text" class="form-control" id="trackName" name="trackName" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Upload Track</button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    <script>
+        let mediaRecorder;
+        let recordedChunks = [];
+        let startTime;
+        let timerInterval;
+        let selectedPlaylistId = '@playlistId';
+
+        document.getElementById('startRecording').addEventListener('click', startRecording);
+        document.getElementById('stopRecording').addEventListener('click', stopRecording);
+        document.getElementById('saveRecording').addEventListener('click', saveRecording);
+
+        async function startRecording() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                recordedChunks = [];
+
+                mediaRecorder.ondataavailable = (e) => {
+                    if (e.data.size > 0) {
+                        recordedChunks.push(e.data);
+                    }
+                };
+
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(recordedChunks, { type: 'audio/mp3' });
+                    const audioUrl = URL.createObjectURL(blob);
+                    document.getElementById('audioPlayback').src = audioUrl;
+                    document.getElementById('audioPlayback').style.display = 'block';
+                    document.getElementById('recordingName').style.display = 'block';
+                    document.getElementById('saveRecording').style.display = 'block';
+                };
+
+                mediaRecorder.start();
+                startTime = Date.now();
+                updateTimer();
+                timerInterval = setInterval(updateTimer, 1000);
+
+                document.getElementById('startRecording').style.display = 'none';
+                document.getElementById('stopRecording').style.display = 'inline-block';
+                document.getElementById('recordingTimer').style.display = 'block';
+                document.getElementById('recordingStatus').textContent = 'Recording...';
+            } catch (err) {
+                console.error('Error accessing microphone:', err);
+                alert('Error accessing microphone. Please ensure you have granted microphone permissions.');
+            }
+        }
+
+        function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                clearInterval(timerInterval);
+                document.getElementById('stopRecording').style.display = 'none';
+                document.getElementById('startRecording').style.display = 'inline-block';
+                document.getElementById('recordingStatus').textContent = 'Recording stopped';
+            }
+        }
+
+        function updateTimer() {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const minutes = Math.floor(elapsed / 60);
+            const seconds = elapsed % 60;
+            document.getElementById('recordingTimer').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        async function saveRecording() {
+            if (recordedChunks.length === 0) {
+                alert('No recording to save');
+                return;
+            }
+
+            const trackName = document.getElementById('recordingName').value;
+            if (!trackName) {
+                alert('Please enter a track name');
+                return;
+            }
+
+            if (!selectedPlaylistId) {
+                alert('Please select a playlist first');
+                return;
+            }
+
+            const blob = new Blob(recordedChunks, { type: 'audio/mp3' });
+            const formData = new FormData();
+            formData.append('audioFile', blob, 'recording.mp3');
+            formData.append('trackName', trackName);
+            formData.append('playlistId', selectedPlaylistId);
+
+            try {
+                const response = await fetch('/Upload?handler=SaveRecording', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    }
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert('Recording saved successfully');
+                    resetRecordingUI();
+                } else {
+                    alert('Error saving recording: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error saving recording:', error);
+                alert('Error saving recording');
+            }
+        }
+
+        function resetRecordingUI() {
+            document.getElementById('audioPlayback').style.display = 'none';
+            document.getElementById('recordingName').style.display = 'none';
+            document.getElementById('saveRecording').style.display = 'none';
+            document.getElementById('recordingStatus').textContent = '';
+            document.getElementById('recordingTimer').style.display = 'none';
+            document.getElementById('recordingName').value = '';
+            recordedChunks = [];
+        }
+
+        async function uploadTrack() {
+            const fileInput = document.getElementById('trackFile');
+            const trackName = document.getElementById('trackName').value;
+            const artist = document.getElementById('artistName').value;
+
+            if (!fileInput.files[0]) {
+                alert('Please select a file');
+                return;
+            }
+
+            if (!trackName) {
+                alert('Please enter a track name');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('trackFile', fileInput.files[0]);
+            formData.append('trackName', trackName);
+            formData.append('artist', artist);
+
+            try {
+                const response = await fetch('/Upload?handler=UploadTrack', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    }
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert('Track uploaded successfully');
+                    fileInput.value = '';
+                    document.getElementById('trackName').value = '';
+                    document.getElementById('artistName').value = '';
+                } else {
+                    alert('Error uploading track: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error uploading track:', error);
+                alert('Error uploading track');
+            }
+        }
+
+        async function createPlaylist() {
+            const title = document.getElementById('playlistTitle').value;
+            if (!title) {
+                alert('Please enter a playlist title');
+                return;
+            }
+
+            try {
+                const response = await fetch('/Upload?handler=CreatePlaylist', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify({ title })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert('Playlist created successfully');
+                    location.reload();
+                } else {
+                    alert('Error creating playlist: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error creating playlist:', error);
+                alert('Error creating playlist');
+            }
+        }
+
+        function selectPlaylist(playlistId) {
+            selectedPlaylistId = playlistId;
+            document.getElementById('emptyState').style.display = 'none';
+            // Add visual feedback for selected playlist
+            document.querySelectorAll('.playlist-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+        }
+
+        // Show/hide empty state based on whether a playlist is selected
+        window.onload = function() {
+            if (!selectedPlaylistId) {
+                document.getElementById('emptyState').style.display = 'block';
+            }
+        };
+    </script>
+
+    <style>
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary {
+            background-color: #1db954;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #1ed760;
+        }
+
+        .btn-danger {
+            background-color: #ff4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #ff6666;
+        }
+
+        .btn-success {
+            background-color: #00c851;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #00e25b;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #404040;
+            border-radius: 4px;
+            background-color: #282828;
+            color: white;
+        }
+
+        .file-input {
+            width: 100%;
+            margin-bottom: 10px;
+            color: white;
+        }
+
+        #recordingStatus {
+            margin-top: 10px;
+            color: #b3b3b3;
+        }
+
+        #recordingTimer {
+            font-size: 24px;
+            text-align: center;
+            margin: 10px 0;
+            color: #1db954;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #b3b3b3;
+        }
+
+        .empty-state-content {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #404040;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 10px;
+            font-weight: normal;
+        }
+
+        .playlist-item.selected {
+            background-color: #282828;
+        }
+
+        /* Additional styles for better form appearance */
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #404040;
+            border-radius: 4px;
+            background-color: #282828;
+            color: white;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #1db954;
+        }
+
+        button {
+            background-color: #1db954;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #1ed760;
+        }
+    </style>
+} 

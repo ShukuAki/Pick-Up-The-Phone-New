@@ -69,7 +69,7 @@ namespace PUTP2
             {
                 endpoints.MapControllerRoute(
                     name: "default",
-                    pattern: "{controller=Music}/{action=Index}/{id?}");
+                    pattern: "{controller=Home}/{action=Splash}/{id?}");
             });
         }
     }

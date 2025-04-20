@@ -1,3 +1,5 @@
+using System;
+
 namespace PUTP2.Models
 {
     public class TrackInfo
@@ -6,8 +8,16 @@ namespace PUTP2.Models
         public string Name { get; set; }
         public string FilePath { get; set; }
         public DateTime UploadDate { get; set; }
-        public string Duration { get; set; }
+        public string Duration { get; set; } = "0:00";
         public bool IsRecording { get; set; }
         public string Artist { get; set; }
+        public string UserTag { get; set; }
+        public string Location { get; set; } = "Unknown";
+        public string ImageUrl { get; set; } = "/images/default-album-cover.jpg";
+
+        public TrackInfo()
+        {
+            UploadDate = DateTime.Now;
+        }
     }
 } 

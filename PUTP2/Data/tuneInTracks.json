@@ -1,0 +1,62 @@
+[
+  {
+    "Id": "7420fcac-4a71-4361-886d-67b599e75016",
+    "Name": "faithfully",
+    "FilePath": "/Data/TuneInSongs/recording_85211bb3-2583-43e6-885d-eabe103abb95.mp3",
+    "UploadDate": "2025-04-20T13:37:31.8954165+08:00",
+    "Duration": "0:04",
+    "IsRecording": true,
+    "Artist": null,
+    "UserTag": null,
+    "Location": null,
+    "ImageUrl": null
+  },
+  {
+    "Id": "731769e5-7ef0-4814-b83e-013dcb490691",
+    "Name": "awawawa",
+    "FilePath": "/Data/TuneInSongs/recording_7c437ed8-8e04-48da-b91f-233048929e53.mp3",
+    "UploadDate": "2025-04-20T14:04:42.6013178+08:00",
+    "Duration": "0:02",
+    "IsRecording": true,
+    "Artist": null,
+    "UserTag": null,
+    "Location": "Unknown",
+    "ImageUrl": "/images/default-album-cover.jpg"
+  },
+  {
+    "Id": "877fd94a-8369-42bf-abd3-f5db33770a93",
+    "Name": "your mind",
+    "FilePath": "/Data/TuneInSongs/recording_a1ae71c0-d1cd-493e-9f15-b8938994b695.mp3",
+    "UploadDate": "2025-04-20T14:11:00.3988358+08:00",
+    "Duration": "0:03",
+    "IsRecording": true,
+    "Artist": null,
+    "UserTag": null,
+    "Location": "Unknown",
+    "ImageUrl": "/images/default-album-cover.jpg"
+  },
+  {
+    "Id": "61d7c289-3aca-4f90-b8a3-64446ccffb08",
+    "Name": "mainit",
+    "FilePath": "/Data/TuneInSongs/recording_baa6d051-3a7b-4b95-b941-13f0766beeb8.mp3",
+    "UploadDate": "2025-04-20T14:19:22.1200751+08:00",
+    "Duration": "0:03",
+    "IsRecording": true,
+    "Artist": null,
+    "UserTag": null,
+    "Location": "Unknown",
+    "ImageUrl": "/images/default-album-cover.jpg"
+  },
+  {
+    "Id": "3eaffff0-fe22-4f63-8559-b46ebe227d58",
+    "Name": "the weeknd naman",
+    "FilePath": "Data\\TuneInSongs\\6d0ba98a-d0d4-4f68-8a7c-3c7e7f60e8c4.mp3",
+    "UploadDate": "2025-04-20T14:19:30.8878192+08:00",
+    "Duration": "0:00",
+    "IsRecording": false,
+    "Artist": null,
+    "UserTag": null,
+    "Location": "Unknown",
+    "ImageUrl": "/images/default-album-cover.jpg"
+  }
+]

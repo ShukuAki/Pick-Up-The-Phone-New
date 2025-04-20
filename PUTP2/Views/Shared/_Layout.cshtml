@@ -11,190 +11,35 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     @await RenderSectionAsync("Styles", required: false)
     <style>
-        [data-theme="dark"] {
+        body {
             --bg-primary: #121212;
             --bg-secondary: #181818;
             --bg-card: #282828;
             --text-primary: #ffffff;
             --text-secondary: #b3b3b3;
             --accent-color: #1db954;
-        }
-
-        [data-theme="dark"] body {
             background-color: var(--bg-primary);
             color: var(--text-primary);
         }
 
-        [data-theme="dark"] .card {
+        .card {
             background-color: var(--bg-card);
         }
 
-        [data-theme="dark"] .table {
+        .table {
             color: var(--text-primary);
-        }
-
-        .header {
-            background-color: var(--bg-secondary);
-            padding: 1rem;
-            border-bottom: 1px solid var(--bg-card);
-        }
-
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .theme-toggle {
-            background: none;
-            border: none;
-            color: var(--text-secondary);
-            cursor: pointer;
-            font-size: 1.2rem;
-            padding: 0.5rem;
-        }
-
-        .theme-toggle:hover {
-            color: var(--text-primary);
-        }
-
-        .main-content {
-            padding-bottom: 80px; /* Space for footer nav */
-            min-height: calc(100vh - 80px); /* Full height minus footer */
-        }
-
-        .footer-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background-color: var(--bg-secondary);
-            border-top: 1px solid var(--bg-card);
-            padding: 0.5rem 0;
-            z-index: 1000;
-        }
-
-        .nav-link {
-            color: var(--text-secondary);
-            text-decoration: none;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 0.5rem;
-        }
-
-        .nav-link i {
-            font-size: 1.2rem;
-            margin-bottom: 0.25rem;
-        }
-
-        .nav-link span {
-            font-size: 0.8rem;
-        }
-
-        .nav-link:hover, .nav-link.active {
-            color: var(--text-primary);
-        }
-
-        .nav-link.active {
-            color: var(--accent-color);
         }
     </style>
 </head>
-<body data-hide-player="@(ViewData["HidePlayerBar"]?.ToString()?.ToLower() ?? "false")" data-theme="dark">
-    <!-- Header -->
-    <header class="header">
-        <div class="container header-content">
-            <h1 class="m-0">@ViewData["Title"]</h1>
-            <button class="theme-toggle" onclick="toggleTheme()">
-                <i class="fas fa-moon"></i>
-            </button>
-        </div>
-    </header>
-
+<body>
     <!-- Main Content -->
-    <main role="main" class="main-content">
+    <main role="main">
         @RenderBody()
     </main>
-
-    <!-- Footer Navigation -->
-    <nav class="footer-nav">
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-3 text-center">
-                    <a asp-controller="Music" asp-action="Index" class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active" : "")">
-                        <i class="fas fa-record-vinyl"></i>
-                        <span>the vault</span>
-                    </a>
-                </div>
-                <div class="col-3 text-center">
-                    <a asp-controller="Music" asp-action="Upload" class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Upload" ? "active" : "")">
-                        <i class="fas fa-upload"></i>
-                        <span>upload</span>
-                    </a>
-                </div>
-                <div class="col-3 text-center">
-                    <a asp-controller="Music" asp-action="TuneIn" class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "TuneIn" ? "active" : "")">
-                        <i class="fas fa-broadcast-tower"></i>
-                        <span>tune in</span>
-                    </a>
-                </div>
-                <div class="col-3 text-center">
-                    <a asp-controller="Music" asp-action="Profile" class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Profile" ? "active" : "")">
-                        <i class="fas fa-user"></i>
-                        <span>profile</span>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </nav>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-
-    <script>
-        function enablePlayerControls() {
-            document.getElementById('prevBtn').classList.remove('disabled');
-            document.getElementById('playPauseBtn').classList.remove('disabled');
-            document.getElementById('nextBtn').classList.remove('disabled');
-            document.getElementById('progressBar').classList.remove('disabled');
-            document.querySelector('.track-info').classList.remove('empty');
-        }
-
-        function disablePlayerControls() {
-            document.getElementById('prevBtn').classList.add('disabled');
-            document.getElementById('playPauseBtn').classList.add('disabled');
-            document.getElementById('nextBtn').classList.add('disabled');
-            document.getElementById('progressBar').classList.add('disabled');
-            document.querySelector('.track-info').classList.add('empty');
-            document.getElementById('currentTrackName').textContent = '';
-            document.getElementById('currentArtistName').textContent = '';
-        }
-
-        function toggleTheme() {
-            const body = document.body;
-            const icon = document.querySelector('.theme-toggle i');
-            const currentTheme = body.getAttribute('data-theme');
-            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-            
-            body.setAttribute('data-theme', newTheme);
-            icon.className = newTheme === 'light' ? 'fas fa-sun' : 'fas fa-moon';
-            
-            // Save theme preference
-            localStorage.setItem('theme', newTheme);
-        }
-
-        // Load saved theme preference
-        document.addEventListener('DOMContentLoaded', () => {
-            const savedTheme = localStorage.getItem('theme') || 'dark';
-            const body = document.body;
-            const icon = document.querySelector('.theme-toggle i');
-            
-            body.setAttribute('data-theme', savedTheme);
-            icon.className = savedTheme === 'light' ? 'fas fa-sun' : 'fas fa-moon';
-        });
-    </script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>
