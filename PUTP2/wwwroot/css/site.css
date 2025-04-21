@@ -3,23 +3,17 @@
     /* Font Family */
     --font-primary: "Futura Bold", "Futura-Bold", Futura, "Trebuchet MS", Arial, sans-serif;
     
-    /* Light Mode Colors */
-    --background-primary-light: #FFFFFF;
-    --background-secondary-light: #F5F5F5;
-    --text-primary-light: #000000;
-    --text-secondary-light: #666666;
-    --accent-light: #000000;
-    --surface-light: #FFFFFF;
-    --border-light: rgba(0, 0, 0, 0.1);
-
-    /* Dark Mode Colors */
-    --background-primary-dark: #000000;
-    --background-secondary-dark: #121212;
-    --text-primary-dark: #FFFFFF;
-    --text-secondary-dark: #999999;
-    --accent-dark: #FFFFFF;
-    --surface-dark: #1A1A1A;
-    --border-dark: rgba(255, 255, 255, 0.1);
+    /* Colors */
+    --background-primary: #FAF4EF;
+    --background-secondary: #FFE7D3;
+    --text-primary: #6E6E6E;
+    --text-secondary: #B2675E;
+    --accent: #FFB88C;
+    --surface: #DCE5DC;
+    --border: #B2675E;
+    --highlight: #F2C94C;
+    --interactive: #A0D8EF;
+    --secondary-accent: #CFA8A2;
 
     /* Layout Variables */
     --player-height: 90px;
@@ -38,28 +32,6 @@
         #FF4B4B,
         #8B7355
     );
-}
-
-/* Default to Dark Mode */
-:root {
-    --background-primary: var(--background-primary-dark);
-    --background-secondary: var(--background-secondary-dark);
-    --text-primary: var(--text-primary-dark);
-    --text-secondary: var(--text-secondary-dark);
-    --accent: var(--accent-dark);
-    --surface: var(--surface-dark);
-    --border: var(--border-dark);
-}
-
-/* Light Mode */
-[data-theme="light"] {
-    --background-primary: var(--background-primary-light);
-    --background-secondary: var(--background-secondary-light);
-    --text-primary: var(--text-primary-light);
-    --text-secondary: var(--text-secondary-light);
-    --accent: var(--accent-light);
-    --surface: var(--surface-light);
-    --border: var(--border-light);
 }
 
 /* Global text style */
@@ -142,7 +114,7 @@ body {
 /* Main Content Styles */
 .main-content {
     padding: 20px;
-    background: linear-gradient(to bottom, var(--background-secondary), var(--background-primary));
+    background: var(--background-primary);
     min-height: 100vh;
     padding-bottom: 0;
 }
@@ -190,12 +162,20 @@ body {
     transition: transform 0.3s ease;
     background: repeating-radial-gradient(
         circle at center,
-        #151515 0,
-        #151515 1px,
-        #1d1d1d 2px,
-        #1d1d1d 3px
+        var(--background-secondary) 0px,
+        var(--background-secondary) 2px,
+        var(--secondary-accent) 3px,
+        var(--secondary-accent) 4px
+    ),
+    conic-gradient(
+        from 0deg,
+        var(--accent),
+        var(--secondary-accent),
+        var(--interactive),
+        var(--highlight),
+        var(--accent)
     );
-    box-shadow: 0 0 30px rgba(255, 255, 255, 0.05);
+    box-shadow: 0 0 20px rgba(178, 103, 94, 0.15);
 }
 
 .vinyl-disc::after {
@@ -208,8 +188,8 @@ body {
     height: 35%;
     border-radius: 50%;
     overflow: hidden;
-    border: 2px solid rgba(0, 0, 0, 0.3);
-    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
+    border: 2px solid var(--border);
+    box-shadow: inset 0 0 10px rgba(178, 103, 94, 0.2);
     background-size: cover;
     background-position: center;
     background-image: var(--label-image, none);
@@ -549,7 +529,7 @@ body {
 .option-icon {
     width: 60px;
     height: 60px;
-    background: var(--accent);
+    background: var(--interactive);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -690,7 +670,7 @@ body {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background-color: var(--accent);
+    background-color: var(--interactive);
     color: var(--text-primary);
     border: none;
     display: flex;
@@ -876,12 +856,14 @@ body {
 }
 
 .btn-control {
-    background: none;
+    background: var(--interactive);
     border: none;
     color: var(--text-primary);
     font-size: 24px;
     cursor: pointer;
     transition: transform 0.2s ease;
+    padding: 8px;
+    border-radius: 50%;
 }
 
 .btn-control:hover {
@@ -892,11 +874,12 @@ body {
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    background: var(--accent);
+    background: var(--interactive);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 28px;
+    color: var(--text-primary);
 }
 
 .track-options {
@@ -1145,7 +1128,7 @@ body[data-hide-player="true"] .audio-grid {
     width: 50px;
     height: 50px;
     border-radius: 50%;
-    background: var(--accent);
+    background: var(--interactive);
     border: none;
     color: var(--text-primary);
     display: flex;
@@ -1475,4 +1458,40 @@ body[data-hide-player="true"] .audio-grid {
     height: 100%;
     object-fit: cover;
     border-radius: 50%;
+}
+
+.switch-view-button {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--interactive);
+    color: var(--text-primary);
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    z-index: 999;
+}
+
+.upload-button {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    background: var(--interactive);
+    color: var(--text-primary);
+    text-decoration: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    transition: all 0.3s ease;
+    z-index: 999;
 }

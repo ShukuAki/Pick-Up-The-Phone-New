@@ -11,23 +11,31 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     @await RenderSectionAsync("Styles", required: false)
     <style>
+        :root {
+            --bg-primary: #FAF4EF;
+            --bg-secondary: #FFE7D3;
+            --bg-card: #DCE5DC;
+            --text-primary: #2E2E2E;
+            --text-secondary: #B2675E;
+            --accent-color: #FFB88C;
+            --highlight-color: #F2C94C;
+            --interactive-color: #A0D8EF;
+            --secondary-accent: #CFA8A2;
+        }
+
         body {
-            --bg-primary: #121212;
-            --bg-secondary: #181818;
-            --bg-card: #282828;
-            --text-primary: #ffffff;
-            --text-secondary: #b3b3b3;
-            --accent-color: #1db954;
             background-color: var(--bg-primary);
-            color: var(--text-primary);
+            color: #2E2E2E;
         }
 
         .card {
             background-color: var(--bg-card);
+            border-color: var(--text-secondary);
+            color: #2E2E2E;
         }
 
         .table {
-            color: var(--text-primary);
+            color: #2E2E2E;
         }
     </style>
 </head>
