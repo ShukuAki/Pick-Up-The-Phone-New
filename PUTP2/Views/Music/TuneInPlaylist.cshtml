@@ -4,53 +4,43 @@
 @{
     ViewData["Title"] = Model.Playlist.Title;
     ViewData["HidePlayerBar"] = "true";
+    ViewData["HideFooterNav"] = "true";
 }
 
-<div class="playlist-container">
+<div class="tunein-playlist-page-container">
     <a href="/Music/TuneIn" class="back-button">
         <i class="fas fa-arrow-left"></i>
     </a>
     
     <div class="playlist-header">
-        <h1>@Model.Playlist.Title</h1>
+        <h1 class="playlist-title">@Model.Playlist.Title</h1>
     </div>
 
-    <div class="tracks-container">
-        @if (Model.Tracks.Any())
+    <div class="safari-track-list-container">
+        @if (Model.Tracks != null && Model.Tracks.Any())
         {
-            <div class="tracks-scroll">
-                @foreach (var track in Model.Tracks)
-                {
-                    <div class="track-item" data-track-id="@track.Id">
-                        <div class="track-content" style="background-image: url('/images/default-album-cover.jpg')">
-                            <button class="delete-track-btn" onclick="deleteTrack('@track.Id', '@Model.Playlist.Id')">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                            <div class="track-info">
-                                <h2 class="track-title">@track.Name</h2>
-                                <div class="track-metadata">
-                                    <div class="metadata-item">
-                                        <span class="metadata-label">USER TAG, LOCATION</span>
-                                        <span class="metadata-value">@track.UploadDate.ToString("MMM dd, yyyy")</span>
-                                    </div>
-                                    <div class="metadata-description">
-                                        This track was uploaded on @track.UploadDate.ToString("MMMM dd, yyyy") 
-                                        and has a duration of @track.Duration.
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+            foreach (var track in Model.Tracks)
+            {
+                <div class="track-card-safari" data-track-id="@track.Id">
+                    <div class="track-card-content">
+                         <h3 class="track-card-title">@track.Name</h3>
+                         <p class="track-card-details">Uploaded: @track.UploadDate.ToString("MMM dd, yyyy") | Duration: @track.Duration</p>
+                        
+                         <button class="play-button" onclick="playTrack('@track.Id')">
+                             <i class="fas fa-play"></i>
+                         </button>
+                        
+                         <button class="delete-track-btn" onclick="deleteTrack('@track.Id', '@Model.Playlist.Id')">
+                            <i class="fas fa-trash"></i>
+                        </button>
                     </div>
-                }
-            </div>
+                </div>
+            }
         }
         else
         {
-            <div class="empty-collection">
-                <div class="empty-message">
-                    <h3>No tracks available</h3>
-                    <p>This playlist is empty</p>
-                </div>
+            <div class="empty-state-message">
+                <h3>No tracks in this playlist.</h3>
             </div>
         }
     </div>
@@ -58,240 +48,15 @@
 
 @section Styles {
     <style>
-        /* Hide the footer bar */
-        .footer-nav {
-            display: none !important;
-        }
+        .footer-nav { display: none !important; }
 
-        .tracks-container {
-            height: 100vh;
-            background: var(--background);
-            overflow: hidden;
+        .tunein-playlist-page-container {
+            padding: 20px;
+            padding-top: 60px;
+            min-height: 100vh;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
             position: relative;
-        }
-
-        .tracks-scroll {
-            height: 100%;
-            overflow-y: auto;
-            scroll-snap-type: y mandatory;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-            scroll-behavior: smooth;
-            overscroll-behavior: contain;
-            touch-action: pan-y;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .tracks-scroll::-webkit-scrollbar {
-            display: none;
-        }
-
-        .track-item {
-            height: 100vh;
-            width: 100%;
-            scroll-snap-align: center;
-            scroll-snap-stop: always;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            transform: scale(0.85);
-            opacity: 0.5;
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-                        opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            will-change: transform, opacity;
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-        }
-
-        .track-item.active {
-            transform: scale(1);
-            opacity: 1;
-        }
-
-        .track-content {
-            width: min(80vw, 80vh);
-            aspect-ratio: 1;
-            position: relative;
-            background-color: #202020;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            transition: transform 0.3s ease;
-            background-size: cover;
-            background-position: center;
-        }
-
-        .track-content::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(
-                to bottom,
-                rgba(0, 0, 0, 0.3),
-                rgba(0, 0, 0, 0.8)
-            );
-            z-index: 1;
-        }
-
-        .track-content:hover {
-            transform: scale(1.02) rotateY(5deg);
-        }
-
-        .track-info {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            padding: 20px;
-            z-index: 2;
-            color: white;
-        }
-
-        .track-title {
-            font-size: 24px;
-            margin: 0 0 10px 0;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-        }
-
-        .track-metadata {
-            font-size: 14px;
-            opacity: 0.9;
-        }
-
-        .metadata-item {
-            margin-bottom: 8px;
-        }
-
-        .metadata-label {
-            color: #ccc;
-            text-transform: uppercase;
-            font-size: 12px;
-            letter-spacing: 1px;
-        }
-
-        .metadata-value {
-            margin-left: 8px;
-        }
-
-        .metadata-description {
-            font-style: italic;
-            opacity: 0.8;
-            margin-top: 10px;
-        }
-
-        .delete-track-btn {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            cursor: pointer;
-            z-index: 3;
-            color: white;
-            transition: all 0.3s ease;
-        }
-
-        .delete-track-btn:hover {
-            background: rgba(255, 0, 0, 0.8);
-            transform: scale(1.1);
-        }
-
-        .empty-collection {
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .empty-message {
-            text-align: center;
-            color: white;
-            padding: 40px;
-            background: rgba(0, 0, 0, 0.5);
-            border-radius: 8px;
-            margin: 20px auto;
-            max-width: 600px;
-        }
-
-        .empty-message h3 {
-            font-size: min(4vw, 1.8em);
-            margin-bottom: 15px;
-            color: white;
-        }
-
-        .empty-message p {
-            font-size: min(3vw, 1.1em);
-            color: rgba(255, 255, 255, 0.7);
-        }
-
-        @@media (max-width: 768px) {
-            .track-item {
-                height: 100vh;
-                padding: 10px;
-            }
-
-            .track-content {
-                width: min(90vw, 90vh);
-                aspect-ratio: 1;
-                margin: auto;
-            }
-
-            .track-info {
-                padding: 15px;
-            }
-
-            .track-title {
-                font-size: 20px;
-                margin-bottom: 8px;
-            }
-
-            .track-metadata {
-                font-size: 12px;
-            }
-
-            .metadata-label {
-                font-size: 10px;
-            }
-
-            .metadata-description {
-                font-size: 11px;
-                margin-top: 8px;
-            }
-
-            .delete-track-btn {
-                width: 36px;
-                height: 36px;
-                top: 10px;
-                right: 10px;
-            }
-
-            .track-item.active .track-content {
-                transform: scale(1);
-            }
-
-            .track-item:not(.active) .track-content {
-                transform: scale(0.85);
-            }
-        }
-
-        @@media (max-width: 480px) {
-            .track-content {
-                width: 85vw;
-                aspect-ratio: 1;
-            }
-
-            .track-info {
-                padding: 12px;
-            }
         }
 
         .back-button {
@@ -302,7 +67,7 @@
             font-size: 18px;
             text-decoration: none;
             z-index: 10;
-            background: rgba(0, 0, 0, 0.5);
+            background: var(--interactive, #A0D8EF);
             width: 32px;
             height: 32px;
             border-radius: 50%;
@@ -310,156 +75,201 @@
             align-items: center;
             justify-content: center;
             transition: all 0.3s ease;
+            border: 1px solid var(--text-secondary, rgba(0,0,0,0.1));
         }
 
         .back-button:hover {
-            background: rgba(0, 0, 0, 0.7);
+            background: var(--highlight, #F2C94C);
             transform: scale(1.1);
         }
 
-        .playlist-container {
-            min-height: 100vh;
-            padding: 20px;
-            position: relative;
+        .playlist-header {
+            text-align: center;
+            margin-bottom: 30px;
         }
+
+        .playlist-title {
+            font-size: 2.5em;
+            color: var(--text-primary);
+        }
+
+        .safari-track-list-container {
+            max-width: 600px;
+            margin: 0 auto;
+            height: 70vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 20px 0;
+            scrollbar-width: thin;
+            scrollbar-color: var(--interactive) var(--bg-secondary);
+        }
+        
+        .safari-track-list-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        .safari-track-list-container::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+            border-radius: 4px;
+        }
+        .safari-track-list-container::-webkit-scrollbar-thumb {
+            background-color: var(--interactive);
+            border-radius: 4px;
+            border: 2px solid var(--bg-secondary);
+        }
+
+        .track-card-safari {
+            width: 90%;
+            margin: 0 auto -40px auto;
+            position: relative;
+            z-index: 1;
+            transition: transform 0.3s ease, z-index 0s 0.3s ease;
+        }
+
+        .track-card-safari:last-child {
+             margin-bottom: 0;
+        }
+
+        .track-card-content {
+            background-color: var(--bg-card, #DCE5DC);
+            color: var(--text-primary);
+            border: 1px solid var(--secondary-accent, rgba(0,0,0,0.1));
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            position: relative; 
+            overflow: hidden;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .track-card-safari:hover {
+            transform: translateY(-35px);
+            z-index: 10;
+            transition: transform 0.3s ease, z-index 0s ease;
+        }
+
+        .track-card-safari:hover .track-card-content {
+             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .track-card-safari:active .track-card-content {
+             box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+         }
+
+        .track-card-title {
+            font-size: 1.2em;
+            margin: 0 0 5px 0;
+            font-weight: bold;
+        }
+
+        .track-card-details {
+            font-size: 0.9em;
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+        }
+
+        .play-button {
+            position: absolute;
+            bottom: 15px;
+            right: 60px;
+            background-color: var(--interactive);
+            color: var(--text-primary);
+            border: none;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 16px;
+            z-index: 5;
+        }
+
+        .play-button:hover {
+            background-color: var(--highlight);
+            transform: scale(1.1);
+        }
+
+        .delete-track-btn {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.1);
+            color: var(--text-secondary);
+            border: none;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 16px;
+            z-index: 5;
+        }
+
+        .delete-track-btn:hover {
+            background: var(--text-secondary);
+            color: var(--bg-primary);
+            transform: scale(1.1);
+        }
+
+        .empty-state-message {
+             text-align: center;
+             margin-top: 50px;
+             color: var(--text-secondary);
+        }
+
+        @@media (max-width: 768px) {
+            .playlist-title {
+                font-size: 2em;
+            }
+            .safari-track-list-container {
+                 height: 75vh;
+            }
+            .track-card-safari {
+                 width: 95%;
+                 margin-bottom: -50px;
+            }
+            .track-card-content {
+                 padding: 15px;
+                 min-height: 90px;
+            }
+             .track-card-title {
+                font-size: 1.1em;
+            }
+            .track-card-details {
+                font-size: 0.8em;
+                margin-bottom: 10px;
+            }
+            .play-button, .delete-track-btn {
+                 width: 32px;
+                 height: 32px;
+                 font-size: 14px;
+                 bottom: 10px;
+            }
+             .play-button {
+                 right: 55px;
+            }
+             .delete-track-btn {
+                 right: 10px;
+            }
+        }
+
     </style>
 }
 
 @section Scripts {
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const container = document.querySelector('.tracks-scroll');
-            const trackItems = document.querySelectorAll('.track-item');
-            let touchStartY = 0;
-            let scrollStartY = 0;
-            let isDragging = false;
-            let lastScrollTime = 0;
-            let velocity = 0;
-            let lastScrollTop = 0;
-            const minVelocity = 0.15;
-            const friction = 0.95;
-            let scrollTimeout;
-            let isScrolling = false;
-
-            function updateActiveTrack() {
-                const containerHeight = container.offsetHeight;
-                const scrollTop = container.scrollTop;
-                
-                trackItems.forEach(item => {
-                    const itemTop = item.offsetTop;
-                    const itemHeight = item.offsetHeight;
-                    const itemCenter = itemTop + (itemHeight / 2);
-                    const containerCenter = scrollTop + (containerHeight / 2);
-                    
-                    const distance = Math.abs(containerCenter - itemCenter);
-                    const threshold = containerHeight / 3;
-                    
-                    if (distance < threshold) {
-                        item.classList.add('active');
-                    } else {
-                        item.classList.remove('active');
-                    }
-                });
-            }
-
-            function handleScrollEnd() {
-                if (isScrolling) return;
-                isScrolling = true;
-
-                const containerHeight = container.offsetHeight;
-                const currentScroll = container.scrollTop;
-                const targetIndex = Math.round(currentScroll / containerHeight);
-                
-                container.scrollTo({
-                    top: targetIndex * containerHeight,
-                    behavior: 'smooth'
-                });
-
-                setTimeout(() => {
-                    isScrolling = false;
-                }, 300);
-            }
-
-            // Touch event handlers with improved velocity-based scrolling
-            container.addEventListener('touchstart', (e) => {
-                if (isScrolling) return;
-                
-                touchStartY = e.touches[0].clientY;
-                scrollStartY = container.scrollTop;
-                isDragging = true;
-                velocity = 0;
-                lastScrollTime = performance.now();
-                lastScrollTop = scrollStartY;
-            }, { passive: true });
-
-            container.addEventListener('touchmove', (e) => {
-                if (!isDragging || isScrolling) return;
-                
-                const touchY = e.touches[0].clientY;
-                const diff = touchStartY - touchY;
-                const currentTime = performance.now();
-                const deltaTime = currentTime - lastScrollTime;
-                
-                if (deltaTime > 0) {
-                    velocity = diff / deltaTime;
-                }
-                
-                const newScrollTop = scrollStartY + diff;
-                container.scrollTop = newScrollTop;
-                lastScrollTime = currentTime;
-                lastScrollTop = newScrollTop;
-            }, { passive: true });
-
-            container.addEventListener('touchend', () => {
-                if (!isDragging || isScrolling) return;
-                isDragging = false;
-                
-                if (Math.abs(velocity) > minVelocity) {
-                    const containerHeight = container.offsetHeight;
-                    const currentScroll = container.scrollTop;
-                    const direction = velocity > 0 ? -1 : 1;
-                    const targetIndex = Math.round(currentScroll / containerHeight) + direction;
-                    
-                    container.scrollTo({
-                        top: targetIndex * containerHeight,
-                        behavior: 'smooth'
-                    });
-                } else {
-                    handleScrollEnd();
-                }
-            });
-
-            // Improved scroll event handler with better debounce
-            container.addEventListener('scroll', () => {
-                if (isScrolling) return;
-                
-                clearTimeout(scrollTimeout);
-                scrollTimeout = setTimeout(() => {
-                    updateActiveTrack();
-                    if (!isDragging) {
-                        handleScrollEnd();
-                    }
-                }, 50);
-            }, { passive: true });
-
-            // Handle window resize
-            window.addEventListener('resize', () => {
-                if (!isScrolling) {
-                    updateActiveTrack();
-                }
-            }, { passive: true });
-
-            // Initial setup
-            updateActiveTrack();
-            
-            // Update the click handler for track items
-            document.querySelectorAll('.track-item').forEach(item => {
-                item.addEventListener('click', function() {
-                    const trackId = this.dataset.trackId;
-                    window.location.href = `/Music/PlayTuneInTrack/${trackId}`;
-                });
-            });
-        });
+        function playTrack(trackId) {
+            window.location.href = `/Music/PlayTuneInTrack/${trackId}`;
+        }
 
         async function deleteTrack(trackId, playlistId) {
             if (!confirm('Are you sure you want to delete this track?')) return;
@@ -467,30 +277,58 @@
             try {
                 const response = await fetch(`/Music/DeleteTrack?trackId=${trackId}&playlistId=${playlistId}`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
+                     headers: {
+                        'Accept': 'application/json'
+                     }
                 });
 
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP error ${response.status}: ${errorText || 'Failed to delete track'}`);
+                }
+
                 const result = await response.json();
+
                 if (result.success) {
                     const trackElement = document.querySelector(`[data-track-id="${trackId}"]`);
                     if (trackElement) {
                         trackElement.remove();
-                        
-                        // Check if there are no more tracks
-                        const remainingTracks = document.querySelectorAll('.track-item');
-                        if (remainingTracks.length === 0) {
-                            location.reload(); // Reload to show empty state
+                        const container = document.querySelector('.safari-track-list-container');
+                        if (!container.querySelector('.track-card-safari')) {
+                             container.innerHTML = '<div class="empty-state-message"><h3>No tracks left in this playlist.</h3></div>';
                         }
                     }
-                    alert('Track deleted successfully!');
+                    console.log('Track deleted successfully!');
                 } else {
-                    alert('Error deleting track: ' + result.message);
+                    alert('Error deleting track: ' + (result.message || 'Unknown error'));
                 }
             } catch (error) {
-                alert('Error deleting track: ' + error.message);
+                 console.error('Error deleting track:', error);
+                 alert('Error deleting track: ' + error.message);
             }
         }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.querySelector('.safari-track-list-container');
+            if (!container) return;
+
+            container.addEventListener('scroll', () => {
+                const scrollY = container.scrollTop;
+                const cards = container.querySelectorAll('.track-card-safari');
+                const containerHeight = container.clientHeight;
+
+                cards.forEach((card, index) => {
+                    const cardTop = card.offsetTop - scrollY;
+                    const cardHeight = card.offsetHeight;
+                    const viewportFactor = (containerHeight - (cardTop + cardHeight / 2)) / containerHeight;
+                    
+                    const scale = 0.9 + 0.1 * (1 - Math.abs(viewportFactor - 0.5) * 2);
+                    const opacity = 0.7 + 0.3 * (1 - Math.abs(viewportFactor - 0.5) * 2);
+                });
+            }, { passive: true });
+            
+            container.dispatchEvent(new Event('scroll'));
+        });
+
     </script>
 } 

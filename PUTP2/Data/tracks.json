@@ -238,5 +238,41 @@
     "UserTag": null,
     "Location": "Unknown",
     "ImageUrl": "/images/default-album-cover.jpg"
+  },
+  {
+    "Id": "211ca0de-68b4-4451-813a-0b72aa7f5a14",
+    "Name": "aw",
+    "FilePath": "Data\\UploadedSongs\\recording_9872ef63-7334-4d71-a85b-ef3c7bd4f81d.mp3",
+    "UploadDate": "2025-04-22T19:25:49.6474003+08:00",
+    "Duration": "0:00",
+    "IsRecording": true,
+    "Artist": null,
+    "UserTag": null,
+    "Location": "Unknown",
+    "ImageUrl": "/images/default-album-cover.jpg"
+  },
+  {
+    "Id": "6e81d032-1b46-4139-90ba-053fb932fdd3",
+    "Name": "tubero",
+    "FilePath": "Data\\UploadedSongs\\a5dd0252-a2e6-4d6c-80f8-0486663e7285.mp3",
+    "UploadDate": "2025-04-22T19:26:26.9571457+08:00",
+    "Duration": "0:00",
+    "IsRecording": false,
+    "Artist": null,
+    "UserTag": null,
+    "Location": "Unknown",
+    "ImageUrl": "/images/default-album-cover.jpg"
+  },
+  {
+    "Id": "ee6565e3-93af-4d2b-931d-187f060af475",
+    "Name": "wdaw",
+    "FilePath": "Data\\UploadedSongs\\recording_f6aae003-4795-4ae4-8820-e47f0ebf66d6.mp3",
+    "UploadDate": "2025-04-22T19:28:10.4624696+08:00",
+    "Duration": "0:00",
+    "IsRecording": true,
+    "Artist": null,
+    "UserTag": null,
+    "Location": "Unknown",
+    "ImageUrl": "/images/default-album-cover.jpg"
   }
 ]

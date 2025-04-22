@@ -159,21 +159,37 @@
             height: 100%;
             backface-visibility: hidden;
             border-radius: 15px;
+            /* Keep base shadow */
             box-shadow: 0 4px 8px rgba(178, 103, 94, 0.2);
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
-            background: transparent;
+            /* Add transition for shadow */
+            transition: box-shadow 0.3s ease;
         }
 
         .playlist-card-front {
-            background: transparent;
+            /* Add the background color here */
+            background-color: var(--accent-color);
         }
 
         .playlist-card-back {
             transform: rotateY(180deg);
             padding: 20px;
+             /* Ensure back has a contrasting background if needed */
+             /* background-color: var(--bg-secondary); */ /* Example */
+        }
+
+        /* Keep hover and active shadow effects */
+        .playlist-card-wrapper:hover .playlist-card-front,
+        .playlist-card-wrapper:hover .playlist-card-back {
+            box-shadow: 0 8px 20px rgba(178, 103, 94, 0.35);
+        }
+
+        .playlist-card-wrapper:active .playlist-card-front,
+        .playlist-card-wrapper:active .playlist-card-back {
+             box-shadow: 0 2px 5px rgba(178, 103, 94, 0.25); 
         }
 
         .level-pattern {
@@ -182,6 +198,10 @@
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
+            /* Remove the background color from here */
+            /* background-color: var(--accent-color); */
+            /* Optional: Add transparency to pattern if needed */
+            /* opacity: 0.8; */ 
         }
 
         /* Level 1 playlists */

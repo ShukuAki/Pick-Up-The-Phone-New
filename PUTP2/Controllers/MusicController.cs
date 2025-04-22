@@ -646,125 +646,93 @@ namespace PUTP2.Controllers
 
             try
             {
-                var options = new JsonSerializerOptions { WriteIndented = true };
-                var json = JsonSerializer.Serialize(playlists, options);
-                await System.IO.File.WriteAllTextAsync(playlistsPath, json);
-
-                // Also remove from the visible set if it was there
+                await SavePlaylistsAsync(playlists);
                 _visiblePlaylistIds.Remove(id);
-
                 return Json(new { success = true });
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error saving playlists: {ex.Message}");
-                return Json(new { success = false, message = "Error saving playlist data." });
+                Console.WriteLine($"Error deleting playlist: {ex.Message}");
+                return Json(new { success = false, message = "Error deleting playlist data." });
             }
         }
 
         public IActionResult Playlist(string id)
         {
-            try
-            {
-                // Read playlists.json
-                var playlistsJson = System.IO.File.ReadAllText(playlistsPath);
-                var playlists = JsonSerializer.Deserialize<List<PlaylistInfo>>(playlistsJson)
-                    ?? new List<PlaylistInfo>();
-
-                // Find the specific playlist
-                var playlist = playlists.FirstOrDefault(p => p.Id == id);
+            var playlist = LoadAllPlaylists().FirstOrDefault(p => p.Id == id);
             if (playlist == null)
             {
-                    return NotFound("Playlist not found");
-                }
+                return NotFound();
+            }
 
-                // Read tracks.json
-                var tracksJson = System.IO.File.ReadAllText(tracksJsonPath);
-                var allTracks = JsonSerializer.Deserialize<List<TrackInfo>>(tracksJson)
-                    ?? new List<TrackInfo>();
+            var allTracks = LoadAllTracks();
+            var trackIdsInPlaylist = new HashSet<string>(playlist.Tracks ?? new List<string>());
+            var tracks = allTracks.Where(t => trackIdsInPlaylist.Contains(t.Id)).ToList();
 
-                // Get tracks for this playlist and prepare audio URLs
-                var playlistTracks = new List<TrackInfo>();
-                if (playlist.Tracks != null)
-                {
-                    foreach (var trackId in playlist.Tracks)
-                    {
-                        var track = allTracks.FirstOrDefault(t => t.Id == trackId);
-                        if (track != null)
-                        {
-                            // Create a copy of the track with the updated file path
-                            var trackWithUrl = new TrackInfo
-                            {
-                                Id = track.Id,
-                                Name = track.Name,
-                                UploadDate = track.UploadDate,
-                                Duration = track.Duration ?? "0:00",
-                                IsRecording = track.IsRecording,
-                                // Convert the file path to a URL
-                                FilePath = Url.Action("GetAudio", "Music", new { fileName = Path.GetFileName(track.FilePath), isTuneIn = false })
-                            };
-                            playlistTracks.Add(trackWithUrl);
-                        }
-                    }
-                }
-            
+             // Correct file paths for playback
+             foreach (var track in tracks)
+            {
+                 if (!string.IsNullOrEmpty(track.FilePath))
+                 {
+                     track.FilePath = Url.Action("GetAudio", "Music", new { fileName = Path.GetFileName(track.FilePath), isTuneIn = false }); // Assuming Vault uses non-TuneIn audio
+                 }
+            }
+
             var viewModel = new PlaylistViewModel
             {
-                    Playlist = playlist,
-                Tracks = playlistTracks
+                Playlist = playlist,
+                Tracks = tracks
             };
 
+            ViewData["Title"] = playlist.Title;
             return View(viewModel);
-            }
-            catch (Exception ex)
-            {
-                // Log the error
-                Console.WriteLine($"Error loading playlist: {ex.Message}");
-                return RedirectToAction("Error", "Home");
-            }
         }
 
         [HttpPost]
-        public IActionResult DeleteTrack(string trackId, string playlistId)
+        public async Task<IActionResult> DeleteTrack(string trackId, string playlistId)
         {
-            try
+            if (string.IsNullOrEmpty(trackId) || string.IsNullOrEmpty(playlistId))
             {
-                var playlistsJson = System.IO.File.ReadAllText(playlistsPath);
-                var playlists = JsonSerializer.Deserialize<List<PlaylistInfo>>(playlistsJson)
-                    ?? new List<PlaylistInfo>();
-
-                var playlist = playlists.FirstOrDefault(p => p.Id == playlistId);
-                if (playlist?.Tracks != null)
-                {
-                    playlist.Tracks.Remove(trackId);
-                    playlist.TrackCount = playlist.Tracks.Count;
-
-                    System.IO.File.WriteAllText(playlistsPath, 
-                        JsonSerializer.Serialize(playlists, new JsonSerializerOptions { WriteIndented = true }));
-
-                    var tracksJson = System.IO.File.ReadAllText(tracksJsonPath);
-                    var tracks = JsonSerializer.Deserialize<List<TrackInfo>>(tracksJson)
-                        ?? new List<TrackInfo>();
-
-                    var track = tracks.FirstOrDefault(t => t.Id == trackId);
-                    if (track != null)
-                    {
-                        if (System.IO.File.Exists(track.FilePath))
-                        {
-                            System.IO.File.Delete(track.FilePath);
-                        }
-                        tracks.Remove(track);
-                        System.IO.File.WriteAllText(tracksJsonPath, 
-                            JsonSerializer.Serialize(tracks, new JsonSerializerOptions { WriteIndented = true }));
-                    }
-                }
-
-                return Json(new { success = true });
+                return Json(new { success = false, message = "Track ID and Playlist ID are required." });
             }
-            catch (Exception ex)
+
+            var playlists = LoadAllPlaylists();
+            var playlist = playlists.FirstOrDefault(p => p.Id == playlistId);
+            if (playlist == null)
             {
-                return Json(new { success = false, message = ex.Message });
+                return Json(new { success = false, message = "Playlist not found." });
             }
+
+            var tracks = LoadAllTracks();
+            var trackToRemove = tracks.FirstOrDefault(t => t.Id == trackId);
+
+            // Remove track from playlist's track list
+            bool trackRemovedFromPlaylist = playlist.Tracks?.Remove(trackId) ?? false;
+            if (trackRemovedFromPlaylist)
+            {
+                playlist.TrackCount = playlist.Tracks?.Count ?? 0;
+                await SavePlaylistsAsync(playlists);
+            }
+
+            // Optionally remove track from tracks.json and delete file if not in any other playlist
+            // For simplicity now, we just remove from the specific playlist
+            // To implement full deletion, check if trackId exists in any other playlist.Tracks list
+            /*
+            if (trackToRemove != null) {
+                 bool isInOtherPlaylists = playlists.Any(p => p.Id != playlistId && p.Tracks != null && p.Tracks.Contains(trackId));
+                 if (!isInOtherPlaylists) {
+                     // Delete file
+                     if (!string.IsNullOrEmpty(trackToRemove.FilePath) && System.IO.File.Exists(trackToRemove.FilePath)) {
+                         try { System.IO.File.Delete(trackToRemove.FilePath); } catch (Exception ex) { Console.WriteLine($"Error deleting file {trackToRemove.FilePath}: {ex.Message}"); }
+                     }
+                     // Remove from tracks.json
+                     tracks.Remove(trackToRemove);
+                     await SaveTracksAsync(tracks);
+                 }
+            }
+            */
+
+            return Json(new { success = trackRemovedFromPlaylist, message = trackRemovedFromPlaylist ? "Track removed from playlist." : "Track not found in playlist." });
         }
 
         private string CalculateTotalDuration(List<TrackInfo> tracks)
@@ -1188,6 +1156,63 @@ namespace PUTP2.Controllers
             }
             // Redirect back to the Upload page to potentially add more
             return RedirectToAction("Upload");
+        }
+
+        // Action to display the Record/Upload page
+        [HttpGet]
+        public IActionResult RecordUpload(string playlistId)
+        {
+            if (string.IsNullOrEmpty(playlistId))
+            {
+                // Handle missing ID, maybe redirect to Index or show an error
+                return RedirectToAction("Index"); 
+            }
+
+            var playlist = LoadAllPlaylists().FirstOrDefault(p => p.Id == playlistId);
+            if (playlist == null)
+            {
+                 return NotFound("Playlist not found.");
+            }
+
+            ViewData["Title"] = "Record/Upload Track";
+            ViewBag.PlaylistId = playlistId;
+            ViewBag.PlaylistTitle = playlist.Title; // Pass title for display
+            return View(); // Assumes RecordUpload.cshtml exists
+        }
+
+        // Helper to load tracks
+        private List<TrackInfo> LoadAllTracks()
+        {
+             if (!System.IO.File.Exists(tracksJsonPath))
+            {
+                return new List<TrackInfo>();
+            }
+            try
+            {
+                var json = System.IO.File.ReadAllText(tracksJsonPath);
+                return JsonSerializer.Deserialize<List<TrackInfo>>(json) ?? new List<TrackInfo>();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading tracks from {tracksJsonPath}: {ex.Message}");
+                return new List<TrackInfo>();
+            }
+        }
+
+        // Helper to save playlists
+        private async Task SavePlaylistsAsync(List<PlaylistInfo> playlists)
+        {
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            var json = JsonSerializer.Serialize(playlists, options);
+            await System.IO.File.WriteAllTextAsync(playlistsPath, json);
+        }
+
+        // Helper to save tracks
+        private async Task SaveTracksAsync(List<TrackInfo> tracks)
+        {
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            var json = JsonSerializer.Serialize(tracks, options);
+            await System.IO.File.WriteAllTextAsync(tracksJsonPath, json);
         }
     }
 

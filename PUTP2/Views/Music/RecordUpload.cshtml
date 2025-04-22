@@ -1,0 +1,435 @@
+@{
+    ViewData["Title"] = "Record/Upload Track";
+    ViewData["HidePlayerBar"] = "true";
+    ViewData["HideFooterNav"] = "true";
+    var playlistId = ViewBag.PlaylistId as string;
+    var playlistTitle = ViewBag.PlaylistTitle as string;
+}
+
+<div class="record-upload-container">
+    <a asp-action="Playlist" asp-controller="Music" asp-route-id="@playlistId" class="back-button">
+        <i class="fas fa-arrow-left"></i>
+    </a>
+
+    <h1 class="page-title">Record or Upload for "@playlistTitle"</h1>
+
+    <div class="panels-container">
+
+        <!-- Recording Panel -->
+        <div class="panel recording-panel">
+            <div class="panel-header">
+                <i class="fas fa-microphone panel-icon"></i>
+                <h3>Record New Track</h3>
+            </div>
+            <div class="panel-content">
+                <div class="form-group">
+                    <label for="recordingName">Track Name:</label>
+                    <input type="text" id="recordingName" class="form-control" placeholder="Enter name for recording" />
+                </div>
+                <div class="recording-controls">
+                    <button id="startRecording" class="btn btn-record"><i class="fas fa-circle"></i> Start</button>
+                    <button id="stopRecording" class="btn btn-stop" disabled><i class="fas fa-stop"></i> Stop</button>
+                </div>
+                <div id="recordingStatus" class="status-text"></div>
+                <audio id="audioPlayback" controls style="display: none; width: 100%; margin-top: 15px;"></audio>
+                <button id="uploadRecordingButton" class="btn btn-upload" style="display: none; margin-top: 10px;">Upload Recording</button>
+            </div>
+        </div>
+
+        <!-- Upload Panel -->
+        <div class="panel upload-panel">
+            <div class="panel-header">
+                 <i class="fas fa-upload panel-icon"></i>
+                <h3>Upload MP3 File</h3>
+            </div>
+             <div class="panel-content">
+                <form id="uploadForm" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken() @* Important for security *@
+                    <input type="hidden" name="playlistId" value="@playlistId" />
+                    
+                    <div class="form-group">
+                        <label for="uploadTrackName">Track Name:</label>
+                        <input type="text" id="uploadTrackName" name="trackName" class="form-control" placeholder="Enter track name" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="trackFile">MP3 File:</label>
+                        <input type="file" id="trackFile" name="trackFile" class="form-control" accept=".mp3" required />
+                    </div>
+                    <button type="submit" class="btn btn-upload">Upload File</button>
+                    <div id="uploadStatus" class="status-text"></div>
+                </form>
+            </div>
+        </div>
+
+    </div> 
+
+</div>
+
+@section Styles {
+    <style>
+        .footer-nav { display: none !important; }
+        body { background-color: var(--bg-primary); }
+
+        .record-upload-container {
+            padding: 20px;
+            padding-top: 70px; /* Space for back button and title */
+            max-width: 900px;
+            margin: 0 auto;
+            color: var(--text-primary);
+        }
+
+        .back-button {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            color: var(--text-primary);
+            font-size: 18px;
+            text-decoration: none;
+            z-index: 10;
+            background: var(--interactive, #A0D8EF);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            border: 1px solid var(--text-secondary, rgba(0,0,0,0.1));
+        }
+        .back-button:hover {
+            background: var(--highlight, #F2C94C);
+            transform: scale(1.1);
+        }
+
+        .page-title {
+            text-align: center;
+            margin-bottom: 40px;
+            color: var(--text-primary);
+            font-size: 2.2em;
+        }
+
+        .panels-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .panel {
+            background-color: var(--bg-secondary, #f8f9fa);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 15px 20px;
+            background-color: var(--secondary-accent, #e9ecef);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid var(--accent-color, #dee2e6);
+        }
+        .panel-header h3 {
+            margin: 0;
+            font-size: 1.2em;
+            color: var(--text-primary);
+        }
+        .panel-icon {
+            font-size: 1.3em;
+            color: var(--text-secondary);
+        }
+
+        .panel-content {
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--accent-color, #ccc);
+            border-radius: 4px;
+            background-color: var(--bg-primary, #fff);
+            color: var(--text-primary);
+            font-size: 1em;
+        }
+        input[type="file"].form-control {
+             padding: 5px;
+        }
+
+        .recording-controls {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn i {
+             margin-right: 5px; /* Space between icon and text */
+        }
+
+        .btn-record {
+            background-color: var(--text-secondary, #dc3545);
+            color: var(--bg-primary, white);
+            flex-grow: 1;
+        }
+        .btn-record:hover {
+             filter: brightness(1.1);
+        }
+
+        .btn-stop {
+             background-color: #6c757d;
+             color: white;
+             flex-grow: 1;
+        }
+         .btn-stop:disabled {
+             opacity: 0.5;
+             cursor: not-allowed;
+         }
+        .btn-stop:not(:disabled):hover {
+             background-color: #5a6268;
+        }
+
+        .btn-upload {
+            background-color: var(--interactive);
+            color: var(--text-primary);
+            width: 100%;
+        }
+         .btn-upload:hover {
+            background-color: var(--highlight);
+         }
+
+        .status-text {
+            margin-top: 10px;
+            font-style: italic;
+            color: var(--text-secondary);
+            min-height: 1.2em; /* Reserve space */
+            text-align: center;
+        }
+
+        /* Responsive */
+        @@media (max-width: 768px) {
+            .panels-container {
+                grid-template-columns: 1fr; /* Stack panels */
+            }
+            .page-title {
+                 font-size: 1.8em;
+            }
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        // JS for Recording and Uploading will go here
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Recording Elements ---
+            const startButton = document.getElementById('startRecording');
+            const stopButton = document.getElementById('stopRecording');
+            const audioPlayback = document.getElementById('audioPlayback');
+            const recordingStatus = document.getElementById('recordingStatus');
+            const recordingNameInput = document.getElementById('recordingName');
+            const uploadRecordingButton = document.getElementById('uploadRecordingButton');
+
+            let mediaRecorder;
+            let audioChunks = [];
+            let audioBlob = null;
+            let stream = null;
+            let recordingStartTime;
+
+            // --- Upload Elements ---
+            const uploadForm = document.getElementById('uploadForm');
+            const uploadStatus = document.getElementById('uploadStatus');
+
+            // --- Recording Logic ---
+            startButton.addEventListener('click', async () => {
+                if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) {
+                    recordingStatus.textContent = 'getUserMedia not supported on your browser!';
+                    return;
+                }
+                try {
+                    recordingStatus.textContent = 'Requesting permission...';
+                    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    recordingStatus.textContent = 'Permission granted. Initializing...';
+                    startButton.disabled = true;
+                    stopButton.disabled = false;
+                    uploadRecordingButton.style.display = 'none';
+                    audioPlayback.style.display = 'none';
+                    audioChunks = [];
+                    audioBlob = null;
+
+                    mediaRecorder = new MediaRecorder(stream);
+
+                    mediaRecorder.ondataavailable = event => {
+                        audioChunks.push(event.data);
+                    };
+
+                    mediaRecorder.onstop = () => {
+                        recordingStatus.textContent = 'Recording stopped. Processing...';
+                        const duration = (Date.now() - recordingStartTime) / 1000;
+                        audioBlob = new Blob(audioChunks, { type: 'audio/mp3' }); // Specify type, browser might adjust
+                        audioPlayback.src = URL.createObjectURL(audioBlob);
+                        audioPlayback.style.display = 'block';
+                        uploadRecordingButton.dataset.duration = formatDuration(duration); // Store duration
+                        uploadRecordingButton.style.display = 'inline-block';
+                        recordingStatus.textContent = `Ready to upload (${formatDuration(duration)})`;
+                        stream.getTracks().forEach(track => track.stop()); // Release microphone
+                        stream = null;
+                        startButton.disabled = false;
+                        stopButton.disabled = true;
+                    };
+
+                    mediaRecorder.onerror = (event) => {
+                        recordingStatus.textContent = `Recorder Error: ${event.error.name}`;
+                        console.error("MediaRecorder error:", event.error);
+                         startButton.disabled = false;
+                         stopButton.disabled = true;
+                         if(stream) stream.getTracks().forEach(track => track.stop());
+                         stream = null;
+                    };
+
+                    mediaRecorder.start();
+                    recordingStartTime = Date.now();
+                    recordingStatus.textContent = 'Recording...';
+
+                } catch (err) {
+                    recordingStatus.textContent = `Error accessing microphone: ${err.name}`; 
+                    console.error('getUserMedia error:', err);
+                    startButton.disabled = false;
+                    stopButton.disabled = true;
+                }
+            });
+
+            stopButton.addEventListener('click', () => {
+                if (mediaRecorder && mediaRecorder.state === 'recording') {
+                    mediaRecorder.stop();
+                    // UI updates happen in mediaRecorder.onstop
+                }
+            });
+
+            uploadRecordingButton.addEventListener('click', async () => {
+                if (!audioBlob) {
+                    alert('No recording available to upload.');
+                    return;
+                }
+                const trackName = recordingNameInput.value.trim();
+                if (!trackName) {
+                    alert('Please enter a name for the recording.');
+                    recordingNameInput.focus();
+                    return;
+                }
+
+                uploadRecordingButton.disabled = true;
+                uploadRecordingButton.textContent = 'Uploading...';
+                recordingStatus.textContent = 'Uploading recording...';
+
+                const formData = new FormData();
+                formData.append('audioFile', audioBlob, `${trackName}.mp3`); // Send as a file
+                formData.append('trackName', trackName);
+                formData.append('playlistId', '@playlistId');
+                formData.append('duration', uploadRecordingButton.dataset.duration || '0:00');
+
+                try {
+                    const response = await fetch('/Music/SaveRecording', { // Target the new POST action
+                        method: 'POST',
+                        body: formData
+                        // Add AntiForgeryToken header if needed in SaveRecording action
+                    });
+
+                    if (!response.ok) {
+                         const errorText = await response.text();
+                         throw new Error(`Upload failed: ${response.status} ${errorText}`);
+                    }
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        recordingStatus.textContent = 'Upload successful!';
+                        alert('Recording uploaded successfully!');
+                        recordingNameInput.value = ''; // Clear input
+                        audioPlayback.style.display = 'none';
+                        uploadRecordingButton.style.display = 'none';
+                        audioBlob = null;
+                    } else {
+                        throw new Error(result.message || 'Upload failed. Please try again.');
+                    }
+                } catch (error) {
+                    console.error('Upload recording error:', error);
+                    recordingStatus.textContent = `Upload error: ${error.message}`;
+                    alert(`Error uploading recording: ${error.message}`);
+                } finally {
+                    uploadRecordingButton.disabled = false;
+                    uploadRecordingButton.textContent = 'Upload Recording';
+                }
+            });
+            
+            // --- Upload Logic ---
+            uploadForm.addEventListener('submit', async (event) => {
+                 event.preventDefault(); // Prevent default form submission
+                 uploadStatus.textContent = 'Uploading file...';
+                 const submitButton = uploadForm.querySelector('button[type="submit"]');
+                 submitButton.disabled = true;
+
+                 const formData = new FormData(uploadForm);
+
+                 try {
+                    const response = await fetch('/Music/UploadTrack', { // Target the UploadTrack action
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                             // Fetch API doesn't send cookies automatically, handle CSRF if needed
+                             // 'RequestVerificationToken': formData.get('__RequestVerificationToken') // Example if needed
+                        }
+                    });
+
+                     if (!response.ok) {
+                         const errorText = await response.text();
+                         throw new Error(`Upload failed: ${response.status} ${errorText}`);
+                    }
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        uploadStatus.textContent = 'Upload successful!';
+                        alert('File uploaded successfully!');
+                        uploadForm.reset(); // Clear the form
+                    } else {
+                         throw new Error(result.message || 'Upload failed. Please try again.');
+                    }
+
+                 } catch (error) {
+                     console.error('Upload file error:', error);
+                     uploadStatus.textContent = `Upload error: ${error.message}`;
+                     alert(`Error uploading file: ${error.message}`);
+                 } finally {
+                     submitButton.disabled = false;
+                 }
+            });
+
+            // Helper function to format duration
+            function formatDuration(seconds) {
+                const minutes = Math.floor(seconds / 60);
+                const remainingSeconds = Math.floor(seconds % 60);
+                return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+            }
+        });
+    </script>
+} 
