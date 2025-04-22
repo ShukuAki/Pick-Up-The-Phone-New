@@ -25,6 +25,8 @@ namespace PUTP2.Controllers
         private readonly string tuneInUploadsPath = Path.Combine("Data", "TuneInSongs");
         private readonly string tuneInTracksJsonPath = Path.Combine("Data", "tuneInTracks.json");
         private List<PlaylistInfo> _playlists;
+        // Static set to store IDs of visible playlists (Vault cards)
+        private static HashSet<string> _visiblePlaylistIds = new HashSet<string>();
 
         public MusicController(PlaylistStorageService storageService, IWebHostEnvironment env)
         {
@@ -48,56 +50,35 @@ namespace PUTP2.Controllers
         public IActionResult Index()
         {
             ViewData["Title"] = "The Vault";
-            ViewBag.Playlists = _playlists;
+            var allPlaylists = LoadAllPlaylists();
+            // Filter playlists based on the static visible set
+            var visiblePlaylists = allPlaylists.Where(p => _visiblePlaylistIds.Contains(p.Id)).ToList();
+            ViewBag.Playlists = visiblePlaylists; // Pass only visible playlists to the view
             return View();
         }
 
         // Upload page
+        [HttpGet]
         public IActionResult Upload()
         {
-            try
-            {
-                var playlistsJson = System.IO.File.ReadAllText(playlistsPath);
-                var playlists = JsonSerializer.Deserialize<List<PlaylistInfo>>(playlistsJson)
-                    ?? new List<PlaylistInfo>();
-
-                var viewModel = new UploadViewModel(_env)
-                {
-                    Playlists = playlists,
-                    IsPlaylistSelected = false
-                };
-
-                return View(viewModel);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error loading playlists: {ex.Message}");
-                return View(new UploadViewModel(_env));
-            }
+            ViewData["Title"] = "Add Card";
+            var allPlaylists = LoadAllPlaylists();
+            // Filter playlists to show only those NOT currently visible
+            var hiddenPlaylists = allPlaylists.Where(p => !_visiblePlaylistIds.Contains(p.Id)).ToList();
+            // Pass the hidden playlists to the view for the dropdown
+            return View(hiddenPlaylists); // Pass the list as the model
         }
 
         // Tune In Upload page
         public IActionResult TuneInUpload()
         {
-            try
+            var allPlaylists = LoadAllPlaylists();
+            var viewModel = new UploadViewModel(_env)
             {
-                var playlistsJson = System.IO.File.ReadAllText(playlistsPath);
-                var playlists = JsonSerializer.Deserialize<List<PlaylistInfo>>(playlistsJson)
-                    ?? new List<PlaylistInfo>();
-
-                var viewModel = new UploadViewModel(_env)
-                {
-                    Playlists = playlists,
-                    IsPlaylistSelected = false
-                };
-
-                return View(viewModel);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error loading playlists: {ex.Message}");
-                return View(new UploadViewModel(_env));
-            }
+                Playlists = allPlaylists, // Keep loading all for now
+                IsPlaylistSelected = false
+            };
+            return View(viewModel);
         }
 
         [HttpPost]
@@ -233,34 +214,13 @@ namespace PUTP2.Controllers
         // Tune In page for live streams and radio
         public IActionResult TuneIn()
         {
-            try
+            ViewData["Title"] = "tune in";
+            var allPlaylists = LoadAllPlaylists();
+            var viewModel = new TuneInViewModel
             {
-                var playlistsJson = System.IO.File.ReadAllText(playlistsPath);
-                var playlists = JsonSerializer.Deserialize<List<PlaylistInfo>>(playlistsJson) ?? new List<PlaylistInfo>();
-
-                var tracksJson = System.IO.File.Exists(tuneInTracksJsonPath) 
-                    ? System.IO.File.ReadAllText(tuneInTracksJsonPath) 
-                    : "[]";
-                var tracks = JsonSerializer.Deserialize<List<TrackInfo>>(tracksJson) ?? new List<TrackInfo>();
-
-                foreach (var track in tracks)
-                {
-                    track.FilePath = Url.Action("GetAudio", "Music", new { fileName = Path.GetFileName(track.FilePath), isTuneIn = true });
-                }
-
-                var viewModel = new TuneInViewModel
-                {
-                    Playlists = playlists,
-                    Tracks = tracks
-                };
-
-                return View(viewModel);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error loading Tune In page: {ex.Message}");
-                return RedirectToAction("Error", "Home", new { message = "Error loading Tune In page" });
-            }
+                Playlists = allPlaylists // Or apply different logic if TuneIn uses playlists differently
+            };
+            return View(viewModel);
         }
 
         private IEnumerable<Track> GetSampleTracks()
@@ -672,85 +632,33 @@ namespace PUTP2.Controllers
         }
 
         [HttpPost]
-        public IActionResult DeletePlaylist(string id)
+        public async Task<IActionResult> DeletePlaylist(string id)
         {
+            var playlists = LoadAllPlaylists();
+            var playlistToRemove = playlists.FirstOrDefault(p => p.Id == id);
+
+            if (playlistToRemove == null)
+            {
+                return Json(new { success = false, message = "Playlist not found." });
+            }
+
+            playlists.Remove(playlistToRemove);
+
             try
             {
-                string playlistsPath = Path.Combine("Data", "playlists.json");
-                string tracksPath = Path.Combine("Data", "tracks.json");
+                var options = new JsonSerializerOptions { WriteIndented = true };
+                var json = JsonSerializer.Serialize(playlists, options);
+                await System.IO.File.WriteAllTextAsync(playlistsPath, json);
 
-                // Read playlists from JSON
-                List<PlaylistInfo> playlists;
-                if (System.IO.File.Exists(playlistsPath))
-                {
-                    var playlistsJson = System.IO.File.ReadAllText(playlistsPath);
-                    playlists = JsonSerializer.Deserialize<List<PlaylistInfo>>(playlistsJson) ?? new List<PlaylistInfo>();
-                }
-                else
-                {
-                    return Json(new { success = false, message = "Playlists file not found" });
-                }
+                // Also remove from the visible set if it was there
+                _visiblePlaylistIds.Remove(id);
 
-                // Find the playlist to delete
-                var playlist = playlists.FirstOrDefault(p => p.Id == id);
-                if (playlist == null)
-                {
-                    return Json(new { success = false, message = "Playlist not found" });
-                }
-
-                    // Delete playlist cover image if it exists and is not the default
-                    if (!string.IsNullOrEmpty(playlist.CoverUrl) && !playlist.CoverUrl.Contains("default-playlist.jpg"))
-                    {
-                        var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", playlist.CoverUrl.TrimStart('/'));
-                        if (System.IO.File.Exists(filePath))
-                        {
-                            System.IO.File.Delete(filePath);
-                        }
-                    }
-
-                    // Remove playlist from the list
-                playlists.Remove(playlist);
-
-                // Save updated playlists back to JSON
-                var playlistsJsonOutput = JsonSerializer.Serialize(playlists, new JsonSerializerOptions 
-                { 
-                    WriteIndented = true 
-                });
-                System.IO.File.WriteAllText(playlistsPath, playlistsJsonOutput);
-
-                // Handle associated tracks
-                if (System.IO.File.Exists(tracksPath))
-                {
-                    var tracksJson = System.IO.File.ReadAllText(tracksPath);
-                    var tracks = JsonSerializer.Deserialize<List<TrackInfo>>(tracksJson) ?? new List<TrackInfo>();
-
-                    // Get tracks associated with this playlist
-                    var playlistTrackIds = playlist.Tracks ?? new List<string>();
-                    var tracksToDelete = tracks.Where(t => playlistTrackIds.Contains(t.Id)).ToList();
-
-                    // Delete track files
-                    foreach (var track in tracksToDelete)
-                    {
-                        if (!string.IsNullOrEmpty(track.FilePath) && System.IO.File.Exists(track.FilePath))
-                        {
-                            System.IO.File.Delete(track.FilePath);
-                        }
-                        tracks.Remove(track);
-                    }
-
-                    // Save updated tracks back to JSON
-                    var tracksJsonOutput = JsonSerializer.Serialize(tracks, new JsonSerializerOptions 
-                    { 
-                        WriteIndented = true 
-                    });
-                    System.IO.File.WriteAllText(tracksPath, tracksJsonOutput);
-                }
-
-                    return Json(new { success = true });
+                return Json(new { success = true });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                Console.WriteLine($"Error saving playlists: {ex.Message}");
+                return Json(new { success = false, message = "Error saving playlist data." });
             }
         }
 
@@ -891,49 +799,23 @@ namespace PUTP2.Controllers
         [Route("Music/GetAudio/{fileName}")]
         public IActionResult GetAudio(string fileName, bool isTuneIn = false)
         {
+            var basePath = isTuneIn ? Path.Combine(_env.ContentRootPath, "Data", "TuneInSongs") :
+                                       Path.Combine(_env.ContentRootPath, "Data", "UploadedSongs");
+            var filePath = Path.Combine(basePath, fileName);
+
+            if (!System.IO.File.Exists(filePath))
+            {
+                 Console.WriteLine($"Audio file not found: {filePath}");
+                return NotFound();
+            }
             try
             {
-                Console.WriteLine($"GetAudio called with fileName: {fileName}, isTuneIn: {isTuneIn}");
-                
-                if (string.IsNullOrEmpty(fileName))
-                {
-                    return BadRequest("File name is required");
-                }
-
-                // Ensure we only use the filename part for security
-                fileName = Path.GetFileName(fileName);
-                Console.WriteLine($"Using filename: {fileName}");
-                
-                var targetUploadsPath = isTuneIn ? tuneInUploadsPath : uploadsPath;
-                Console.WriteLine($"Using uploads path: {targetUploadsPath}");
-                
-                var filePath = Path.Combine(Directory.GetCurrentDirectory(), targetUploadsPath, fileName);
-                Console.WriteLine($"Looking for file at: {filePath}");
-
-                if (!System.IO.File.Exists(filePath))
-                {
-                    Console.WriteLine($"File not found at path: {filePath}");
-                    return NotFound($"Audio file not found: {fileName}");
-                }
-
-                // Ensure the file is within the allowed directory
-                var fullPath = Path.GetFullPath(filePath);
-                var uploadsFullPath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), targetUploadsPath));
-                
-                if (!fullPath.StartsWith(uploadsFullPath))
-                {
-                    Console.WriteLine($"Invalid file path: {fullPath} is not within {uploadsFullPath}");
-                    return BadRequest("Invalid file path");
-                }
-
-                Console.WriteLine($"Returning file: {filePath}");
-                return PhysicalFile(filePath, "audio/mpeg");
+                 return PhysicalFile(filePath, "audio/mpeg", enableRangeProcessing: true);
             }
-            catch (Exception ex)
+             catch (Exception ex)
             {
-                Console.WriteLine($"Error in GetAudio: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
-                return BadRequest($"Error accessing audio file: {ex.Message}");
+                 Console.WriteLine($"Error serving audio file {filePath}: {ex.Message}");
+                 return StatusCode(500, "Internal server error");
             }
         }
 
@@ -1273,6 +1155,39 @@ namespace PUTP2.Controllers
                 Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 return RedirectToAction("TuneIn", new { error = "Error loading track" });
             }
+        }
+
+        private List<PlaylistInfo> LoadAllPlaylists()
+        {
+            if (!System.IO.File.Exists(playlistsPath))
+            {
+                return new List<PlaylistInfo>();
+            }
+            try
+            {
+                var json = System.IO.File.ReadAllText(playlistsPath);
+                return JsonSerializer.Deserialize<List<PlaylistInfo>>(json) ?? new List<PlaylistInfo>();
+            }
+            catch (Exception ex)
+            {
+                // Log error
+                Console.WriteLine($"Error loading playlists from {playlistsPath}: {ex.Message}");
+                return new List<PlaylistInfo>();
+            }
+        }
+
+        // New POST Action to make a playlist visible
+        [HttpPost]
+        [ValidateAntiForgeryToken] // Good practice for POST actions
+        public IActionResult MakeVisible(string playlistId)
+        {
+            if (!string.IsNullOrEmpty(playlistId))
+            {
+                // Add the selected ID to the visible set
+                _visiblePlaylistIds.Add(playlistId);
+            }
+            // Redirect back to the Upload page to potentially add more
+            return RedirectToAction("Upload");
         }
     }
 

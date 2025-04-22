@@ -3,11 +3,14 @@
 }
 
 <div class="profile-container">
-    <h1>Profile</h1>
+    <!-- <h1>Profile</h1> Removed redundant heading -->
     <!-- Profile content will go here -->
 </div>
 
-<div class="container-fluid">
+<div class="container-fluid profile-content-area">
+    <a href="javascript:history.back()" class="back-button">
+        <i class="fas fa-arrow-left"></i>
+    </a>
     <div class="profile-header mb-5">
         <h1 class="display-4 mb-4">profile</h1>
         <div class="d-flex align-items-center mb-4">
@@ -103,6 +106,38 @@
 </div>
 
 <style>
+    .profile-content-area {
+        padding-top: 15px; /* Keep some padding */
+        position: relative;
+    }
+
+    .back-button {
+        position: absolute;
+        top: 15px; /* Keep button position */
+        left: 15px;
+        color: #2E2E2E;
+        font-size: 18px;
+        text-decoration: none;
+        z-index: 10;
+        background: var(--interactive);
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+    .back-button:hover {
+        background: var(--highlight);
+        transform: scale(1.1);
+    }
+
+    .profile-header {
+        margin-top: 40px; /* Added margin to push header below button */
+    }
+
     .stat-card {
         background-color: var(--spotify-grey);
         border-radius: 8px;

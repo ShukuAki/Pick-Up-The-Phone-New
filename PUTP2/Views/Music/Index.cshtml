@@ -10,6 +10,10 @@
         <i class="fas fa-user"></i>
     </a>
 
+    <button class="view-toggle-button" id="viewToggle">
+        <i class="fas fa-th"></i>
+    </button>
+
     <h1 class="vault-title">The Vault</h1>
     
     @if (ViewBag.Playlists != null)
@@ -79,6 +83,30 @@
             transition: all 0.3s ease;
         }
 
+        .view-toggle-button {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            color: #2E2E2E;
+            font-size: 18px;
+            z-index: 10;
+            background: var(--interactive);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .view-toggle-button:hover {
+            background: var(--highlight);
+            transform: scale(1.1);
+        }
+
         .profile-button:hover {
             background: var(--highlight);
             transform: scale(1.1);
@@ -102,7 +130,6 @@
         }
 
         .playlist-cards-container {
-            flex: 1;
             position: relative;
             overflow: hidden;
         }
@@ -112,6 +139,30 @@
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 20px;
             padding: 20px;
+        }
+
+        .playlist-cards-grid.grid-view {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .playlist-cards-grid.side-scroll {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            padding: 20px;
+            gap: 20px;
+            width: 100%;
+            align-items: center;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .playlist-cards-grid.side-scroll::-webkit-scrollbar {
+            display: none;
         }
 
         .playlist-card-wrapper {
@@ -218,6 +269,10 @@
         }
 
         @@media (max-width: 768px) {
+            .view-toggle-button {
+                display: flex;
+            }
+
             .playlist-cards-container {
                 width: 100%;
                 overflow: hidden;
@@ -240,19 +295,36 @@
                 display: none;
             }
 
-            .playlist-card-wrapper {
-                flex: 0 0 280px;
-                width: 280px;
-                height: 380px;
+            /* Adjust side-scroll card size for mobile using vw and aspect-ratio */
+            .playlist-cards-grid.side-scroll .playlist-card-wrapper {
+                flex: 0 0 65vw;  /* Use viewport width for basis */
+                width: 65vw;     /* Use viewport width */
+                height: auto;    /* Let aspect-ratio handle height */
+                aspect-ratio: 2 / 3; /* Maintain card proportions */
                 scroll-snap-align: center;
                 transform: scale(0.85);
                 opacity: 0.5;
                 transition: all 0.3s ease;
             }
 
-            .playlist-card-wrapper.active {
+            .playlist-cards-grid.side-scroll .playlist-card-wrapper.active {
                 transform: scale(1);
                 opacity: 1;
+            }
+
+            /* Adjust grid view card size for mobile using aspect-ratio */
+            .playlist-cards-grid.grid-view .playlist-card-wrapper {
+                flex: 1 1 calc(33.333% - 15px); /* Adjusted gap slightly */
+                width: auto;
+                height: auto; /* Let aspect-ratio handle height */
+                aspect-ratio: 2 / 3; /* Maintain card proportions */
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            .playlist-cards-grid.grid-view {
+                 gap: 15px; /* Match adjusted gap */
+                 padding: 15px; /* Adjust padding */
             }
         }
 
@@ -425,45 +497,38 @@
         });
 
         document.addEventListener('DOMContentLoaded', function() {
-            if (window.matchMedia('(max-width: 768px)').matches) {
-                const container = document.querySelector('.playlist-cards-grid');
-                const cards = Array.from(container.querySelectorAll('.playlist-card-wrapper'));
+            const viewToggle = document.getElementById('viewToggle');
+            const playlistGrid = document.querySelector('.playlist-cards-grid');
+            let isGridView = false;
+
+            viewToggle.addEventListener('click', function() {
+                isGridView = !isGridView;
+                playlistGrid.classList.toggle('grid-view', isGridView);
+                playlistGrid.classList.toggle('side-scroll', !isGridView);
                 
-                function updateActiveCard() {
-                    const middle = container.scrollLeft + (container.offsetWidth / 2);
-                    let closestCard = null;
-                    let closestDistance = Infinity;
-                    
-                    cards.forEach(card => {
-                        const cardMiddle = card.offsetLeft + (card.offsetWidth / 2);
-                        const distance = Math.abs(middle - cardMiddle);
-                        
-                        if (distance < closestDistance) {
-                            closestDistance = distance;
-                            closestCard = card;
-                        }
-                        
-                        card.classList.remove('active');
-                    });
-                    
-                    if (closestCard) {
-                        closestCard.classList.add('active');
-                    }
+                // Update button icon
+                viewToggle.innerHTML = isGridView ? 
+                    '<i class="fas fa-list"></i>' : 
+                    '<i class="fas fa-th"></i>';
+            });
+
+            // Initialize view based on screen size
+            function updateView() {
+                if (window.innerWidth <= 768) {
+                    playlistGrid.classList.add('side-scroll');
+                    playlistGrid.classList.remove('grid-view');
+                    isGridView = false;
+                    viewToggle.innerHTML = '<i class="fas fa-th"></i>';
+                } else {
+                    playlistGrid.classList.remove('side-scroll');
+                    playlistGrid.classList.remove('grid-view');
+                    isGridView = false;
                 }
-
-                // Handle scroll events
-                let scrollTimeout;
-                container.addEventListener('scroll', () => {
-                    clearTimeout(scrollTimeout);
-                    scrollTimeout = setTimeout(updateActiveCard, 100);
-                }, { passive: true });
-
-                // Initial setup
-                updateActiveCard();
-                
-                // Handle window resize
-                window.addEventListener('resize', updateActiveCard, { passive: true });
             }
+
+            // Update view on window resize
+            window.addEventListener('resize', updateView);
+            updateView();
 
             // Click handler for playlist navigation
             const cards = document.querySelectorAll('.playlist-card-wrapper');

@@ -10,6 +10,10 @@
         <i class="fas fa-user"></i>
     </a>
 
+    <button class="view-toggle-button" id="viewToggle">
+        <i class="fas fa-th"></i> <!-- Default to grid icon -->
+    </button>
+
     <h1 class="vault-title">tune in</h1>
     
     @if (Model.Playlists != null && Model.Playlists.Any())
@@ -106,7 +110,6 @@
         }
 
         .playlist-cards-container {
-            flex: 1;
             position: relative;
             overflow: hidden;
             background-color: #FAF4EF;
@@ -356,13 +359,42 @@
             transform: scale(1.05);
         }
 
+        .view-toggle-button {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            color: #2E2E2E;
+            font-size: 18px;
+            z-index: 10;
+            background: var(--interactive);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: none; /* Hidden by default, shown on mobile */
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .view-toggle-button:hover {
+            background: var(--highlight);
+            transform: scale(1.1);
+        }
+
         @@media (max-width: 768px) {
-            .playlist-cards-container {
-                width: 100%;
-                overflow: hidden;
+            .view-toggle-button {
+                display: flex; /* Show button on mobile */
             }
 
-            .playlist-cards-grid {
+            .playlist-cards-container {
+                width: 100%;
+                /* overflow: hidden; */ /* Keep this commented/removed or vertical scroll won't work */
+            }
+
+            /* Default mobile view: side-scroll */
+            .playlist-cards-grid.side-scroll {
                 display: flex;
                 overflow-x: auto;
                 scroll-snap-type: x mandatory;
@@ -375,23 +407,51 @@
                 -ms-overflow-style: none;
             }
 
-            .playlist-cards-grid::-webkit-scrollbar {
+            .playlist-cards-grid.side-scroll::-webkit-scrollbar {
                 display: none;
             }
 
-            .playlist-card-wrapper {
-                flex: 0 0 280px;
-                width: 280px;
-                height: 380px;
+            .playlist-cards-grid.side-scroll .playlist-card-wrapper {
+                flex: 0 0 65vw;
+                width: 65vw;
+                height: auto;
+                aspect-ratio: 2 / 3;
                 scroll-snap-align: center;
                 transform: scale(0.85);
                 opacity: 0.5;
                 transition: all 0.3s ease;
             }
 
-            .playlist-card-wrapper.active {
+            .playlist-cards-grid.side-scroll .playlist-card-wrapper.active {
                 transform: scale(1);
                 opacity: 1;
+            }
+
+            /* Grid view for mobile */
+            .playlist-cards-grid.grid-view {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 15px;
+                padding: 15px;
+                overflow-x: hidden; /* Prevent horizontal scroll in grid */
+                width: auto;
+            }
+
+            .playlist-cards-grid.grid-view .playlist-card-wrapper {
+                flex: 1 1 calc(33.333% - 15px);
+                width: auto;
+                height: auto;
+                aspect-ratio: 2 / 3;
+                transform: scale(1);
+                opacity: 1;
+                /* Reset side-scroll specific styles */
+                scroll-snap-align: initial;
+            }
+
+            /* Remove the active scaling effect in grid view */
+            .playlist-cards-grid.grid-view .playlist-card-wrapper.active {
+                 transform: scale(1);
+                 opacity: 1;
             }
         }
     </style>
@@ -509,6 +569,96 @@
                     window.location.href = `/Music/TuneInPlaylist/${playlistId}`;
                 });
             });
+
+            // Keep existing active card logic for side-scroll view 
+            const container = document.querySelector('.playlist-cards-grid');
+            const cards = Array.from(container.querySelectorAll('.playlist-card-wrapper'));
+            let scrollTimeout;
+
+            function updateActiveCard() {
+                if (!container.classList.contains('side-scroll')) return; // Only run for side-scroll
+
+                const middle = container.scrollLeft + (container.offsetWidth / 2);
+                let closestCard = null;
+                let closestDistance = Infinity;
+                
+                cards.forEach(card => {
+                    const cardMiddle = card.offsetLeft + (card.offsetWidth / 2);
+                    const distance = Math.abs(middle - cardMiddle);
+                    
+                    if (distance < closestDistance) {
+                        closestDistance = distance;
+                        closestCard = card;
+                    }
+                    
+                    card.classList.remove('active');
+                });
+                
+                if (closestCard) {
+                    closestCard.classList.add('active');
+                }
+            }
+
+            function setupSideScrollActivation() {
+                if (window.matchMedia('(max-width: 768px)').matches && container.classList.contains('side-scroll')) {
+                    container.addEventListener('scroll', handleScroll, { passive: true });
+                    updateActiveCard(); // Initial check
+                    window.addEventListener('resize', updateActiveCard, { passive: true });
+                } else {
+                    container.removeEventListener('scroll', handleScroll);
+                    window.removeEventListener('resize', updateActiveCard);
+                    // Remove active class from all cards if not side-scrolling
+                    cards.forEach(card => card.classList.remove('active'));
+                }
+            }
+
+            function handleScroll() {
+                clearTimeout(scrollTimeout);
+                scrollTimeout = setTimeout(updateActiveCard, 100);
+            }
+
+            // --- View Toggle Logic --- 
+            const viewToggle = document.getElementById('viewToggle');
+            const playlistGrid = document.querySelector('.playlist-cards-grid');
+            let isGridView = false; // Default to side-scroll on mobile
+
+            viewToggle.addEventListener('click', function() {
+                isGridView = !isGridView;
+                playlistGrid.classList.toggle('grid-view', isGridView);
+                playlistGrid.classList.toggle('side-scroll', !isGridView);
+                
+                // Update button icon
+                viewToggle.innerHTML = isGridView ? 
+                    '<i class="fas fa-list"></i>' : 
+                    '<i class="fas fa-th"></i>';
+                
+                // Re-evaluate side-scroll activation logic after view change
+                setupSideScrollActivation(); 
+            });
+
+            // Initialize view based on screen size and setup listeners
+            function updateViewOnResize() {
+                 // Check if we are on mobile
+                 if (window.innerWidth <= 768) {
+                     // If mobile, ensure default is side-scroll unless manually toggled
+                     if (!playlistGrid.classList.contains('grid-view')) {
+                         playlistGrid.classList.add('side-scroll');
+                         isGridView = false;
+                         viewToggle.innerHTML = '<i class="fas fa-th"></i>';
+                     }
+                 } else {
+                     // If desktop, remove mobile-specific classes
+                     playlistGrid.classList.remove('side-scroll');
+                     playlistGrid.classList.remove('grid-view');
+                     isGridView = false;
+                 }
+                 // Setup or remove scroll listeners based on current state
+                 setupSideScrollActivation(); 
+            }
+
+            // Initial setup on load
+            updateViewOnResize(); 
+            window.addEventListener('resize', updateViewOnResize);
         });
 
         function uploadTrack(playlistId) {

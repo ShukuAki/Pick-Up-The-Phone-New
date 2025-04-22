@@ -28,7 +28,7 @@
             justify-content: center;
             align-items: center;
             opacity: 0;
-            animation: fadeInOut 7s ease-in-out forwards;
+            animation: fadeInOut 2s ease-in-out forwards;
         }
 
         .splash-image {
@@ -41,10 +41,10 @@
             0% {
                 opacity: 0;
             }
-            10% {
+            25% {
                 opacity: 1;
             }
-            90% {
+            75% {
                 opacity: 1;
             }
             100% {
@@ -59,10 +59,10 @@
     </div>
 
     <script>
-        // Redirect after 7 seconds
+        // Redirect after 2 seconds
         setTimeout(function() {
             window.location.href = '@Url.Action("Index", "Music")';
-        }, 7000);
+        }, 2000);
     </script>
 </body>
 </html> 
