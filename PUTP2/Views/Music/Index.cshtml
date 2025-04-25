@@ -14,7 +14,26 @@
         <i class="fas fa-th"></i>
     </button>
 
+    <button class="theme-toggle-button" id="themeToggle">
+        <i class="fas fa-moon"></i>
+    </button>
+
     <h1 class="vault-title">The Vault</h1>
+
+    <div class="filter-controls-container">
+        <input type="text" id="playlistSearchInput" class="search-input" placeholder="Search playlists...">
+        <div class="dropdown-container">
+            <button class="dropdown-button" id="levelDropdownButton">
+                <span>Levels</span> <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="dropdown-content" id="levelDropdownContent">
+                <a href="#" data-level="all">All</a>
+                <a href="#" data-level="1">Level 1</a>
+                <a href="#" data-level="2">Level 2</a>
+                <a href="#" data-level="3">Level 3</a>
+            </div>
+        </div>
+    </div>
     
     @if (ViewBag.Playlists != null)
     {
@@ -65,11 +84,35 @@
             display: none !important;
         }
 
+        .theme-toggle-button {
+            position: absolute;
+            top: 15px;
+            right: 55px;
+            color: var(--text-primary);
+            font-size: 18px;
+            z-index: 10;
+            background: var(--interactive);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle-button:hover {
+            background: var(--highlight);
+            transform: scale(1.1);
+        }
+
         .profile-button {
             position: absolute;
             top: 15px;
             left: 15px;
-            color: #2E2E2E;
+            color: var(--text-primary);
             font-size: 18px;
             text-decoration: none;
             z-index: 10;
@@ -87,14 +130,14 @@
             position: absolute;
             top: 15px;
             right: 15px;
-            color: #2E2E2E;
+            color: var(--text-primary);
             font-size: 18px;
             z-index: 10;
             background: var(--interactive);
             width: 32px;
             height: 32px;
             border-radius: 50%;
-            display: none;
+            display: flex;
             align-items: center;
             justify-content: center;
             border: none;
@@ -102,11 +145,7 @@
             transition: all 0.3s ease;
         }
 
-        .view-toggle-button:hover {
-            background: var(--highlight);
-            transform: scale(1.1);
-        }
-
+        .view-toggle-button:hover,
         .profile-button:hover {
             background: var(--highlight);
             transform: scale(1.1);
@@ -119,14 +158,18 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         .vault-title {
             text-align: center;
             margin-top: 20px;
-            margin-bottom: 30px;
+            margin-bottom: 15px;
             font-size: 2.5em;
-            color: #2E2E2E;
+            color: var(--text-primary);
+            transition: color 0.3s ease;
         }
 
         .playlist-cards-container {
@@ -238,6 +281,7 @@
 
         [data-level="1"] .playlist-card-back {
             background: linear-gradient(135deg, var(--bg-secondary), var(--secondary-accent));
+            color: var(--text-primary);
         }
 
         /* Level 2 playlists */
@@ -252,6 +296,7 @@
 
         [data-level="2"] .playlist-card-back {
             background: linear-gradient(135deg, var(--accent-color), var(--secondary-accent));
+            color: var(--text-primary);
         }
 
         /* Level 3 playlists */
@@ -266,6 +311,7 @@
 
         [data-level="3"] .playlist-card-back {
             background: linear-gradient(135deg, var(--secondary-accent), var(--accent-color));
+            color: var(--text-primary);
         }
 
         @@media (max-width: 768px) {
@@ -330,20 +376,20 @@
 
         .playlist-info {
             text-align: center;
-            color: #2E2E2E;
+            color: var(--text-primary);
         }
 
         .playlist-info h2 {
             margin: 0;
             font-size: 24px;
-            color: #2E2E2E;
+            color: var(--text-primary);
             margin-bottom: 10px;
         }
 
         .playlist-info p {
             margin: 5px 0 0;
             font-size: 14px;
-            color: #2E2E2E;
+            color: var(--text-secondary);
         }
 
         .delete-playlist-btn {
@@ -382,8 +428,8 @@
             bottom: 80px;
             left: 50%;
             transform: translateX(-50%);
-            background: var(--interactive);
-            color: #2E2E2E;
+            background: #bf6713;
+            color: #000000;
             text-decoration: none;
             padding: 8px 16px;
             border-radius: 20px;
@@ -396,13 +442,19 @@
         }
 
         .switch-view-button:hover {
-            background: var(--highlight);
+            background: #f5e5d1;
+            color: #000000;
             transform: translateX(-50%) scale(1.05);
         }
 
         .switch-view-button i {
             font-size: 16px;
-            color: #2E2E2E;
+            color: #000000;
+            transition: color 0.3s ease;
+        }
+
+        .switch-view-button:hover i {
+            color: #000000;
         }
 
         .upload-button {
@@ -410,7 +462,7 @@
             bottom: 80px;
             right: 20px;
             background: var(--interactive);
-            color: #2E2E2E;
+            color: var(--text-primary);
             text-decoration: none;
             width: 40px;
             height: 40px;
@@ -432,6 +484,227 @@
         .content-wrapper {
             height: 100vh;
         }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            padding: 20px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .confirm-delete {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .cancel-delete {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .confirm-delete:hover {
+            background-color: var(--highlight);
+        }
+
+        .cancel-delete:hover {
+            background-color: var(--interactive);
+        }
+
+        /* Added Filter Controls Styles (copied from TuneIn.cshtml) */
+        .filter-controls-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 25px;
+            gap: 15px;
+            padding: 0 20px;
+        }
+
+        .search-input {
+            padding: 10px 15px;
+            border-radius: 20px;
+            border: 1px solid var(--borders);
+            background-color: var(--card-bg);
+            color: var(--text-primary);
+            font-size: 1em;
+            width: 100%;
+            max-width: 400px; 
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--interactive);
+            box-shadow: 0 0 5px rgba(136, 201, 230, 0.5); 
+        }
+
+        .dropdown-container {
+            position: relative;
+            display: inline-block;
+            width: 100%; 
+            max-width: 400px; 
+        }
+
+        .dropdown-button {
+            background-color: #bf6713;
+            color: #000000;
+            padding: 10px 20px;
+            font-size: 1em;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            transition: background-color 0.3s ease;
+        }
+
+        .dropdown-button:hover {
+            background-color: #f5e5d1;
+            color: #000000;
+        }
+        
+        .dropdown-button i {
+            margin-left: 8px;
+            transition: transform 0.3s ease;
+            color: #000000;
+        }
+
+        .dropdown-container.open .dropdown-button i {
+             transform: rotate(180deg);
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: var(--card-bg);
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 100;
+            border-radius: 8px;
+            overflow: hidden; 
+            margin-top: 5px;
+            border: 1px solid var(--borders);
+            width: 100%; 
+        }
+
+        .dropdown-content a {
+            color: var(--text-primary);
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            transition: background-color 0.2s ease;
+        }
+
+        .dropdown-content a:hover {
+            background-color: var(--interactive);
+            color: var(--text-primary); 
+        }
+
+        /* Updated Switch View Button Colors */
+        .switch-view-button {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #bf6713;
+            color: #000000;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            z-index: 999;
+        }
+
+        .switch-view-button:hover {
+            background: #f5e5d1;
+            color: #000000;
+            transform: translateX(-50%) scale(1.05);
+        }
+
+        .switch-view-button i {
+            font-size: 16px;
+            color: #000000;
+            transition: color 0.3s ease;
+        }
+
+        .switch-view-button:hover i {
+            color: #000000;
+        }
+
+        /* Responsive adjustments (copied from TuneIn.cshtml) */
+        @@media (min-width: 768px) {
+            .filter-controls-container {
+                flex-direction: row;
+                justify-content: space-between;
+                max-width: 800px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .search-input {
+                width: auto;
+                flex-grow: 1;
+                margin-right: 20px;
+                max-width: none;
+            }
+
+            .dropdown-container {
+                width: auto; 
+                max-width: none;
+            }
+
+            .dropdown-button {
+                width: auto; 
+                min-width: 120px; 
+            }
+
+            .dropdown-content {
+                width: auto; 
+            }
+        }
     </style>
 }
 
@@ -452,7 +725,7 @@
                 </div>
             `;
             document.body.appendChild(modal);
-            modal.style.display = 'block';
+            modal.style.display = 'flex';
         }
 
         function closeModal() {
@@ -539,6 +812,101 @@
                     window.location.href = `/Music/Playlist/${playlistId}`;
                 });
             });
+
+            // Theme toggle functionality
+            const themeToggle = document.getElementById('themeToggle');
+            const moonIcon = '<i class="fas fa-moon"></i>';
+            const sunIcon = '<i class="fas fa-sun"></i>';
+
+            // Apply theme from localStorage on page load
+            function applyTheme() {
+                const savedTheme = localStorage.getItem('theme');
+                if (savedTheme) {
+                    document.documentElement.setAttribute('data-theme', savedTheme);
+                    themeToggle.innerHTML = savedTheme === 'dark' ? sunIcon : moonIcon;
+                }
+            }
+
+            // Initial theme application
+            applyTheme();
+
+            // Theme toggle functionality
+            themeToggle.addEventListener('click', () => {
+                const currentTheme = document.documentElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                
+                document.documentElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                themeToggle.innerHTML = newTheme === 'dark' ? sunIcon : moonIcon;
+            });
+
+            // --- Search and Filter Logic (Copied & Adapted) --- 
+            const searchInput = document.getElementById('playlistSearchInput');
+            const levelDropdownButton = document.getElementById('levelDropdownButton');
+            const levelDropdownContent = document.getElementById('levelDropdownContent');
+            const levelDropdownContainer = levelDropdownButton.closest('.dropdown-container');
+            const dropdownLinks = levelDropdownContent.querySelectorAll('a');
+            
+            const allPlaylistCards = document.querySelectorAll('.playlist-card-wrapper'); // Selector for Index page cards
+            let currentLevelFilter = 'all';
+            let currentSearchTerm = '';
+            let searchTimeout;
+
+            function filterPlaylists() {
+                 allPlaylistCards.forEach(card => {
+                    const level = card.querySelector('.playlist-card')?.dataset.level || '0'; // Get level from inner card
+                    // Find title within the back face of the card
+                    const titleElement = card.querySelector('.playlist-card-back .playlist-info h2'); 
+                    const title = titleElement ? titleElement.textContent.toLowerCase() : '';
+
+                    const levelMatch = currentLevelFilter === 'all' || level === currentLevelFilter;
+                    const searchMatch = currentSearchTerm === '' || title.includes(currentSearchTerm);
+
+                    if (levelMatch && searchMatch) {
+                        card.style.display = ''; // Show card wrapper
+                    } else {
+                        card.style.display = 'none'; // Hide card wrapper
+                    }
+                });
+            }
+
+            // Search Input Handler (copied)
+            searchInput.addEventListener('input', () => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    currentSearchTerm = searchInput.value.toLowerCase().trim();
+                    filterPlaylists();
+                }, 300); // Debounce search input
+            });
+
+            // Dropdown Logic (copied)
+            levelDropdownButton.addEventListener('click', (event) => {
+                event.stopPropagation(); 
+                const isOpen = levelDropdownContent.style.display === 'block';
+                levelDropdownContent.style.display = isOpen ? 'none' : 'block';
+                levelDropdownContainer.classList.toggle('open', !isOpen);
+            });
+
+            dropdownLinks.forEach(link => {
+                link.addEventListener('click', (event) => {
+                    event.preventDefault(); 
+                    currentLevelFilter = link.dataset.level;
+                    levelDropdownButton.querySelector('span').textContent = link.textContent; 
+                    levelDropdownContent.style.display = 'none'; 
+                    levelDropdownContainer.classList.remove('open');
+                    filterPlaylists();
+                });
+            });
+
+            window.addEventListener('click', (event) => {
+                 if (!levelDropdownContainer.contains(event.target)) {
+                    levelDropdownContent.style.display = 'none';
+                    levelDropdownContainer.classList.remove('open');
+                }
+            });
+
+            // Initial filter call 
+            filterPlaylists(); 
         });
     </script>
 } 

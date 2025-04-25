@@ -12,7 +12,7 @@
         body {
             margin: 0;
             padding: 0;
-            background-color: #FAF4EF;
+            background-color: #7F3B35;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -28,7 +28,7 @@
             justify-content: center;
             align-items: center;
             opacity: 0;
-            animation: fadeInOut 2s ease-in-out forwards;
+            animation: fadeInOut 3.5s ease-in-out forwards;
         }
 
         .splash-image {
@@ -41,10 +41,10 @@
             0% {
                 opacity: 0;
             }
-            25% {
+            5% {
                 opacity: 1;
             }
-            75% {
+            95% {
                 opacity: 1;
             }
             100% {
@@ -55,14 +55,14 @@
 </head>
 <body>
     <div class="splash-container">
-        <img src="/images/200w.gif" alt="Welcome to Tune In" class="splash-image">
+        <img src="/splash-content/tune-in_gif.gif" alt="Tune In" class="splash-image">
     </div>
 
     <script>
-        // Redirect after 2 seconds
+        // Redirect after the GIF duration (3.5 seconds)
         setTimeout(function() {
             window.location.href = '@Url.Action("TuneIn", "Music")';
-        }, 2000);
+        }, 3500);
     </script>
 </body>
 </html> 

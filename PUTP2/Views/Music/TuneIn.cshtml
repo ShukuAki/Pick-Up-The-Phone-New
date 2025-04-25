@@ -14,7 +14,27 @@
         <i class="fas fa-th"></i> <!-- Default to grid icon -->
     </button>
 
+    <button class="dark-mode-toggle" id="darkModeToggle">
+        <i class="fas fa-moon"></i>
+    </button>
+
     <h1 class="vault-title">tune in</h1>
+
+    <div class="filter-controls-container">
+        <input type="text" id="playlistSearchInput" class="search-input" placeholder="Search playlists...">
+        
+        <div class="dropdown-container">
+            <button class="dropdown-button" id="levelDropdownButton">
+                <span>Levels</span> <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="dropdown-content" id="levelDropdownContent">
+                <a href="#" data-level="all">All</a>
+                <a href="#" data-level="1">Level 1</a>
+                <a href="#" data-level="2">Level 2</a>
+                <a href="#" data-level="3">Level 3</a>
+            </div>
+        </div>
+    </div>
     
     @if (Model.Playlists != null && Model.Playlists.Any())
     {
@@ -65,24 +85,103 @@
 
 @section Styles {
     <style>
-        /* Hide the footer bar */
-        .footer-nav {
-            display: none !important;
+        /* Add styles for html and body */
+        html, body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background-color: var(--primary-bg);
+            transition: background-color 0.3s ease;
         }
 
+        :root {
+            /* Light mode variables - using original colors */
+            --primary-bg: #FAF4EF;
+            --secondary-accent: #CFA8A2;
+            --highlight: #F2C94C;
+            --interactive: #88C9E6;
+            --text-primary: #2E2E2E;
+            --text-secondary: #666666;
+            --borders: #B2675E;
+            --card-bg: #FFFFFF;
+        }
+
+        [data-theme="dark"] {
+            /* Dark mode variables */
+            --primary-bg: #1C1C1C;
+            --secondary-accent: #7F3B35;
+            --highlight: #F2C94C;
+            --interactive: #88C9E6;
+            --text-primary: #FFE7D3;
+            --text-secondary: #CFA8A2;
+            --borders: #B2675E;
+            --card-bg: #2B2B2B;
+        }
+
+        /* Add smooth transition for color changes */
+        .vault-container,
+        .playlist-cards-grid,
+        .playlist-card-front,
+        .playlist-card-back,
+        .playlist-info,
+        .playlist-info h2,
+        .playlist-info p,
+        .profile-button,
+        .view-toggle-button,
+        .dark-mode-toggle,
+        .switch-view-button,
+        .upload-button {
+            transition: all 0.3s ease;
+        }
+
+        .dark-mode-toggle {
+            position: absolute;
+            top: 15px;
+            right: 60px; /* Position it to the left of view-toggle-button */
+            color: var(--text-primary); /* Reverted to theme variable */
+            font-size: 18px;
+            z-index: 10;
+            background: var(--interactive); /* Reverted to blue theme variable */
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .dark-mode-toggle:hover {
+            background: var(--highlight); /* Reverted to yellow theme variable */
+            color: #000000; /* Keep text black on hover as requested previously */
+            transform: scale(1.1);
+        }
+
+        .dark-mode-toggle i {
+            transition: transform 0.3s ease;
+        }
+
+        [data-theme="dark"] .dark-mode-toggle i {
+            transform: rotate(-45deg);
+        }
+
+        /* Update existing styles to use CSS variables */
         .vault-container {
             position: relative;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            background-color: #FAF4EF;
+            background-color: var(--primary-bg);
+            color: var(--text-primary);
         }
 
         .profile-button {
             position: absolute;
             top: 15px;
             left: 15px;
-            color: #2E2E2E;
+            color: var(--text-primary);
             font-size: 18px;
             text-decoration: none;
             z-index: 10;
@@ -104,15 +203,143 @@
         .vault-title {
             text-align: center;
             margin-top: 20px;
-            margin-bottom: 30px;
+            margin-bottom: 15px; /* Reduced margin */
             font-size: 2.5em;
-            color: #2E2E2E;
+            color: var(--text-primary);
+        }
+
+        .filter-controls-container {
+            display: flex;
+            flex-direction: column; /* Stack vertically on small screens */
+            align-items: center;
+            margin-bottom: 25px;
+            gap: 15px;
+            padding: 0 20px;
+        }
+
+        .search-input {
+            padding: 10px 15px;
+            border-radius: 20px;
+            border: 1px solid var(--borders);
+            background-color: var(--card-bg);
+            color: var(--text-primary);
+            font-size: 1em;
+            width: 100%;
+            max-width: 400px; /* Limit width on larger screens */
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--interactive);
+            box-shadow: 0 0 5px rgba(136, 201, 230, 0.5); /* Use interactive color for focus */
+        }
+
+        /* Remove old level button styles if they exist */
+        .level-filter-buttons { display: none; }
+
+        /* Dropdown Styles */
+        .dropdown-container {
+            position: relative;
+            display: inline-block;
+            width: 100%; /* Full width on small screens */
+            max-width: 400px; /* Match search bar width on small screens */
+        }
+
+        .dropdown-button {
+            background-color: #bf6713; /* Background: orange */
+            color: #000000; /* Text color: black */
+            padding: 10px 20px;
+            font-size: 1em;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            transition: background-color 0.3s ease;
+        }
+
+        .dropdown-button:hover {
+            background-color: #f5e5d1; /* Background: light */
+            color: #000000; /* Text color: black */
+        }
+        
+        .dropdown-button i {
+            margin-left: 8px;
+            transition: transform 0.3s ease;
+            color: #000000; /* Ensure chevron is black */
+        }
+
+        .dropdown-container.open .dropdown-button i {
+             transform: rotate(180deg);
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: var(--card-bg);
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 100;
+            border-radius: 8px;
+            overflow: hidden; /* Ensures content respects border radius */
+            margin-top: 5px;
+            border: 1px solid var(--borders);
+            width: 100%; /* Match button width */
+        }
+
+        .dropdown-content a {
+            color: var(--text-primary);
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            transition: background-color 0.2s ease;
+        }
+
+        .dropdown-content a:hover {
+            background-color: var(--interactive);
+            color: var(--text-primary); /* Ensure text remains readable */
+        }
+
+        /* Responsive adjustments */
+        @@media (min-width: 768px) {
+            .filter-controls-container {
+                flex-direction: row;
+                justify-content: space-between;
+                max-width: 800px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .search-input {
+                width: auto;
+                flex-grow: 1;
+                margin-right: 20px;
+                max-width: none;
+            }
+
+            .dropdown-container {
+                width: auto; /* Auto width on larger screens */
+                max-width: none;
+            }
+
+            .dropdown-button {
+                width: auto; /* Auto width for button content */
+                min-width: 120px; /* Ensure reasonable minimum width */
+            }
+
+            .dropdown-content {
+                width: auto; /* Auto width for content */
+            }
         }
 
         .playlist-cards-container {
             position: relative;
             overflow: hidden;
-            background-color: #FAF4EF;
+            background-color: var(--primary-bg);
         }
 
         .playlist-cards-grid {
@@ -120,7 +347,7 @@
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 20px;
             padding: 20px;
-            background-color: #FAF4EF;
+            background-color: var(--primary-bg);
         }
 
         .playlist-card-wrapper {
@@ -171,7 +398,7 @@
 
         .playlist-card-front {
             /* Add the background color here */
-            background-color: var(--accent-color);
+            background-color: var(--card-bg);
         }
 
         .playlist-card-back {
@@ -211,7 +438,7 @@
 
         [data-level="1"] .playlist-card-front,
         [data-level="1"] .playlist-card-back {
-            border: 2px solid var(--accent-color);
+            border: 2px solid var(--interactive-color);
         }
 
         [data-level="1"] .playlist-card-back {
@@ -248,20 +475,20 @@
 
         .playlist-info {
             text-align: center;
-            color: #2E2E2E;
+            color: var(--text-primary);
         }
 
         .playlist-info h2 {
             margin: 0;
             font-size: 24px;
-            color: #2E2E2E;
+            color: var(--text-primary);
             margin-bottom: 10px;
         }
 
         .playlist-info p {
             margin: 5px 0 0;
             font-size: 14px;
-            color: #2E2E2E;
+            color: var(--text-secondary);
         }
 
         .delete-playlist-btn {
@@ -296,8 +523,8 @@
             bottom: 80px;
             left: 50%;
             transform: translateX(-50%);
-            background: var(--interactive);
-            color: #2E2E2E;
+            background: #bf6713; /* Background: orange */
+            color: #000000; /* Text color: black */
             text-decoration: none;
             padding: 8px 16px;
             border-radius: 20px;
@@ -310,21 +537,27 @@
         }
 
         .switch-view-button:hover {
-            background: var(--highlight);
+            background: #f5e5d1; /* Background: light */
+            color: #000000; /* Text color: black */
             transform: translateX(-50%) scale(1.05);
         }
 
         .switch-view-button i {
             font-size: 16px;
-            color: #2E2E2E;
+            color: #000000; /* Icon color: black */
+            transition: color 0.3s ease; /* Add transition for icon color */
+        }
+
+        .switch-view-button:hover i {
+            color: #000000; /* Icon color on hover: black */
         }
 
         .upload-button {
             position: fixed;
             bottom: 80px;
             right: 20px;
-            background: var(--interactive);
-            color: #2E2E2E;
+            background: var(--interactive); /* Reverted to blue theme variable */
+            color: var(--text-primary); /* Reverted to theme variable */
             text-decoration: none;
             width: 40px;
             height: 40px;
@@ -338,14 +571,15 @@
         }
 
         .upload-button:hover {
-            background: var(--highlight);
+            background: var(--highlight); /* Reverted to yellow theme variable */
+            color: #000000; /* Keep text black on hover as requested previously */
             transform: scale(1.1);
         }
 
         .empty-state {
             text-align: center;
             padding: 40px;
-            color: #2E2E2E;
+            color: var(--text-primary);
             flex: 1;
             display: flex;
             flex-direction: column;
@@ -368,7 +602,7 @@
             display: inline-block;
             padding: 10px 20px;
             background: var(--interactive);
-            color: #2E2E2E;
+            color: var(--text-primary);
             text-decoration: none;
             border-radius: 20px;
             transition: all 0.3s ease;
@@ -383,7 +617,7 @@
             position: absolute;
             top: 15px;
             right: 15px;
-            color: #2E2E2E;
+            color: var(--text-primary);
             font-size: 18px;
             z-index: 10;
             background: var(--interactive);
@@ -679,6 +913,78 @@
             // Initial setup on load
             updateViewOnResize(); 
             window.addEventListener('resize', updateViewOnResize);
+
+            // --- Search and Filter Logic --- 
+            const searchInput = document.getElementById('playlistSearchInput');
+            // Dropdown elements
+            const levelDropdownButton = document.getElementById('levelDropdownButton');
+            const levelDropdownContent = document.getElementById('levelDropdownContent');
+            const levelDropdownContainer = levelDropdownButton.closest('.dropdown-container'); // Get container
+            const dropdownLinks = levelDropdownContent.querySelectorAll('a');
+            
+            const allPlaylistCards = document.querySelectorAll('.playlist-card-wrapper');
+            let currentLevelFilter = 'all';
+            let currentSearchTerm = '';
+            let searchTimeout;
+
+            function filterPlaylists() {
+                allPlaylistCards.forEach(card => {
+                    const level = card.querySelector('.playlist-card').dataset.level || '0'; // Get level
+                    const titleElement = card.querySelector('.playlist-info h2');
+                    const title = titleElement ? titleElement.textContent.toLowerCase() : '';
+
+                    const levelMatch = currentLevelFilter === 'all' || level === currentLevelFilter;
+                    const searchMatch = currentSearchTerm === '' || title.includes(currentSearchTerm);
+
+                    if (levelMatch && searchMatch) {
+                        card.style.display = ''; // Show card
+                    } else {
+                        card.style.display = 'none'; // Hide card
+                    }
+                });
+            }
+
+            // Search Input Handler
+            searchInput.addEventListener('input', () => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    currentSearchTerm = searchInput.value.toLowerCase().trim();
+                    filterPlaylists();
+                }, 300); // Debounce search input
+            });
+
+            // --- Dropdown Logic --- 
+            levelDropdownButton.addEventListener('click', (event) => {
+                event.stopPropagation(); // Prevent click from immediately closing dropdown
+                const isOpen = levelDropdownContent.style.display === 'block';
+                levelDropdownContent.style.display = isOpen ? 'none' : 'block';
+                levelDropdownContainer.classList.toggle('open', !isOpen);
+            });
+
+            dropdownLinks.forEach(link => {
+                link.addEventListener('click', (event) => {
+                    event.preventDefault(); // Prevent page jump
+                    currentLevelFilter = link.dataset.level;
+                    levelDropdownButton.querySelector('span').textContent = link.textContent; // Update button text
+                    levelDropdownContent.style.display = 'none'; // Hide dropdown
+                     levelDropdownContainer.classList.remove('open');
+                    filterPlaylists();
+                });
+            });
+
+            // Close dropdown if clicked outside
+            window.addEventListener('click', (event) => {
+                 if (!levelDropdownContainer.contains(event.target)) {
+                    levelDropdownContent.style.display = 'none';
+                    levelDropdownContainer.classList.remove('open');
+                }
+            });
+
+            // Initial filter call 
+            filterPlaylists(); 
+            
+            // --- View Toggle Logic --- 
+            // ... rest of the view toggle code ...
         });
 
         function uploadTrack(playlistId) {
@@ -776,5 +1082,37 @@
                     alert('Error accessing microphone');
                 });
         }
+
+        // Dark mode functionality
+        document.addEventListener('DOMContentLoaded', () => {
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            const htmlElement = document.documentElement;
+            
+            // Check for saved theme preference
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                htmlElement.setAttribute('data-theme', savedTheme);
+                if (savedTheme === 'dark') {
+                    darkModeToggle.querySelector('i').classList.replace('fa-moon', 'fa-sun');
+                }
+            }
+
+            // Toggle dark mode
+            darkModeToggle.addEventListener('click', () => {
+                const currentTheme = htmlElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                const icon = darkModeToggle.querySelector('i');
+                
+                htmlElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                
+                // Toggle icon
+                if (newTheme === 'dark') {
+                    icon.classList.replace('fa-moon', 'fa-sun');
+                } else {
+                    icon.classList.replace('fa-sun', 'fa-moon');
+                }
+            });
+        });
     </script>
 } 

@@ -14,6 +14,7 @@ namespace PUTP2.Models
         public string UserTag { get; set; }
         public string Location { get; set; } = "Unknown";
         public string ImageUrl { get; set; } = "/images/default-album-cover.jpg";
+        public string AgeGroup { get; set; }
 
         public TrackInfo()
         {

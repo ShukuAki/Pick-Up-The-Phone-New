@@ -34,6 +34,19 @@
     );
 }
 
+[data-theme="dark"] {
+    --background-primary: #1C1C1C;
+    --background-secondary: #2B2B2B;
+    --text-primary: #FFE7D3;
+    --text-secondary: #CFA8A2;
+    --surface: #2B2B2B;
+    --border: #7F3B35;
+    --accent: #7F3B35;
+    --highlight: #F2C94C;
+    --interactive: #88C9E6;
+    --secondary-accent: #7F3B35;
+}
+
 /* Global text style */
 * {
     text-transform: lowercase;
@@ -1494,4 +1507,11 @@ body[data-hide-player="true"] .audio-grid {
     font-size: 18px;
     transition: all 0.3s ease;
     z-index: 999;
+}
+
+/* Hide all footer navigation */
+.footer-nav,
+[class*="footer-navigation"],
+[class*="bottom-nav"] {
+    display: none !important;
 }

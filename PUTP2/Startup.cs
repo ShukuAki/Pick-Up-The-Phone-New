@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.FileProviders;
+using System.IO;
 
 namespace PUTP2
 {
@@ -53,7 +55,15 @@ namespace PUTP2
             }
 
             app.UseHttpsRedirection();
+            
+            // Configure static files with additional file provider for splash-content
             app.UseStaticFiles();
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new PhysicalFileProvider(
+                    Path.Combine(env.ContentRootPath, "wwwroot", "splash-content")),
+                RequestPath = "/splash-content"
+            });
 
             app.UseRouting();
 
@@ -69,7 +79,7 @@ namespace PUTP2
             {
                 endpoints.MapControllerRoute(
                     name: "default",
-                    pattern: "{controller=Home}/{action=Splash}/{id?}");
+                    pattern: "{controller=Home}/{action=Index}/{id?}");
             });
         }
     }

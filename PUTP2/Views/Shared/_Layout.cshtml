@@ -12,6 +12,7 @@
     @await RenderSectionAsync("Styles", required: false)
     <style>
         :root {
+            /* Light theme variables */
             --bg-primary: #FAF4EF;
             --bg-secondary: #FFE7D3;
             --bg-card: #DCE5DC;
@@ -19,23 +20,76 @@
             --text-secondary: #B2675E;
             --accent-color: #FFB88C;
             --highlight-color: #F2C94C;
-            --interactive-color: #A0D8EF;
+            --interactive-color: #88C9E6;
             --secondary-accent: #CFA8A2;
         }
 
+        [data-theme="dark"] {
+            /* Dark theme variables */
+            --bg-primary: #1C1C1C;
+            --bg-secondary: #2B2B2B;
+            --bg-card: #2B2B2B;
+            --text-primary: #FFE7D3;
+            --text-secondary: #CFA8A2;
+            --accent-color: #7F3B35;
+            --highlight-color: #F2C94C;
+            --interactive-color: #88C9E6;
+            --secondary-accent: #7F3B35;
+        }
+
+        /* Ensure full page coverage */
+        html {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
             background-color: var(--bg-primary);
-            color: #2E2E2E;
+            color: var(--text-primary);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        main {
+            flex: 1;
+            background-color: var(--bg-primary);
+            transition: background-color 0.3s ease;
+            min-height: 100vh;
+            width: 100%;
         }
 
         .card {
             background-color: var(--bg-card);
             border-color: var(--text-secondary);
-            color: #2E2E2E;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
         }
 
         .table {
-            color: #2E2E2E;
+            color: var(--text-primary);
+            transition: color 0.3s ease;
+        }
+
+        /* Bootstrap overrides for dark mode */
+        [data-theme="dark"] .modal-content {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .form-control {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            border-color: var(--text-secondary);
+        }
+
+        [data-theme="dark"] .form-control:focus {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
         }
     </style>
 </head>
@@ -48,6 +102,16 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script>
+        // Check for saved theme preference
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            }
+        });
+    </script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>

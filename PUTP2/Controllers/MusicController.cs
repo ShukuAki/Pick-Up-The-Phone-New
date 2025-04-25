@@ -19,11 +19,11 @@ namespace PUTP2.Controllers
     {
         private readonly PlaylistStorageService _storageService;
         private readonly IWebHostEnvironment _env;
-        private readonly string playlistsPath = Path.Combine("Data", "playlists.json");
-        private readonly string tracksJsonPath = Path.Combine("Data", "tracks.json");
-        private readonly string uploadsPath = Path.Combine("Data", "UploadedSongs");
-        private readonly string tuneInUploadsPath = Path.Combine("Data", "TuneInSongs");
-        private readonly string tuneInTracksJsonPath = Path.Combine("Data", "tuneInTracks.json");
+        private readonly string playlistsPath;
+        private readonly string tracksJsonPath;
+        private readonly string uploadsPath;
+        private readonly string tuneInUploadsPath;
+        private readonly string tuneInTracksJsonPath;
         private List<PlaylistInfo> _playlists;
         // Static set to store IDs of visible playlists (Vault cards)
         private static HashSet<string> _visiblePlaylistIds = new HashSet<string>();
@@ -32,6 +32,14 @@ namespace PUTP2.Controllers
         {
             _storageService = storageService;
             _env = env;
+            
+            // Use Path.Combine with _env.ContentRootPath for published environment
+            playlistsPath = Path.Combine(_env.ContentRootPath, "Data", "playlists.json");
+            tracksJsonPath = Path.Combine(_env.ContentRootPath, "Data", "tracks.json");
+            uploadsPath = Path.Combine(_env.ContentRootPath, "Data", "UploadedSongs");
+            tuneInUploadsPath = Path.Combine(_env.ContentRootPath, "Data", "TuneInSongs");
+            tuneInTracksJsonPath = Path.Combine(_env.ContentRootPath, "Data", "tuneInTracks.json");
+            
             _playlists = LoadData().ToList();
 
             // Ensure required directories exist
@@ -290,108 +298,72 @@ namespace PUTP2.Controllers
         {
             try
             {
-                if (string.IsNullOrEmpty(playlistId))
-                {
-                    return Json(new { success = false, message = "Playlist ID is required" });
-                }
-
                 if (trackFile == null || trackFile.Length == 0)
-                {
                     return Json(new { success = false, message = "No file uploaded" });
-                }
 
-                // Define paths based on whether it's a Tune In track
-                var targetUploadsPath = isTuneIn ? tuneInUploadsPath : uploadsPath;
-                var targetTracksJsonPath = isTuneIn ? tuneInTracksJsonPath : tracksJsonPath;
+                var uploadsDirectory = isTuneIn ? tuneInUploadsPath : uploadsPath;
+                Directory.CreateDirectory(uploadsDirectory);
 
-                // Ensure directories exist
-                Directory.CreateDirectory(targetUploadsPath);
-
-                // Generate unique filename
                 var fileName = $"{Guid.NewGuid()}{Path.GetExtension(trackFile.FileName)}";
-                var filePath = Path.Combine(targetUploadsPath, fileName);
+                var filePath = Path.Combine(uploadsDirectory, fileName);
 
-                try
+                using (var stream = new FileStream(filePath, FileMode.Create))
                 {
-                    // Save the file
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await trackFile.CopyToAsync(stream);
-                    }
-
-                    // Create track info
-                    var trackId = Guid.NewGuid().ToString();
-                    var newTrack = new TrackInfo
-                    {
-                        Id = trackId,
-                        Name = trackName,
-                        FilePath = filePath,
-                        UploadDate = DateTime.Now,
-                        IsRecording = isRecording,
-                        Duration = duration
-                    };
-
-                    // Update tracks.json
-                    var tracks = new List<TrackInfo>();
-                    if (System.IO.File.Exists(targetTracksJsonPath))
-                    {
-                        var tracksJson = await System.IO.File.ReadAllTextAsync(targetTracksJsonPath);
-                        tracks = JsonSerializer.Deserialize<List<TrackInfo>>(tracksJson) ?? new List<TrackInfo>();
-                    }
-                    tracks.Add(newTrack);
-                    await System.IO.File.WriteAllTextAsync(targetTracksJsonPath, 
-                        JsonSerializer.Serialize(tracks, new JsonSerializerOptions { WriteIndented = true }));
-
-                    // Update playlists.json
-                    var playlists = new List<PlaylistInfo>();
-                    if (System.IO.File.Exists(playlistsPath))
-                    {
-                        var playlistsJson = await System.IO.File.ReadAllTextAsync(playlistsPath);
-                        playlists = JsonSerializer.Deserialize<List<PlaylistInfo>>(playlistsJson) ?? new List<PlaylistInfo>();
-                    }
-
-                    var playlist = playlists.FirstOrDefault(p => p.Id == playlistId);
-                    if (playlist != null)
-                    {
-                        playlist.Tracks ??= new List<string>();
-                        playlist.Tracks.Add(trackId);
-                        playlist.TrackCount = playlist.Tracks.Count;
-                        await System.IO.File.WriteAllTextAsync(playlistsPath, 
-                            JsonSerializer.Serialize(playlists, new JsonSerializerOptions { WriteIndented = true }));
-
-                        return Json(new { success = true, message = "Track uploaded successfully" });
-                    }
-                    else
-                    {
-                        // Clean up the uploaded file if playlist not found
-                        if (System.IO.File.Exists(filePath))
-                        {
-                            System.IO.File.Delete(filePath);
-                        }
-                        return Json(new { success = false, message = "Playlist not found" });
-                    }
+                    await trackFile.CopyToAsync(stream);
                 }
-                catch (Exception ex)
+
+                var tracksJsonPath = isTuneIn ? tuneInTracksJsonPath : this.tracksJsonPath;
+                List<TrackInfo> tracks;
+
+                if (System.IO.File.Exists(tracksJsonPath))
                 {
-                    // Clean up the uploaded file if there's an error
-                    if (System.IO.File.Exists(filePath))
-                    {
-                        try
-                        {
-                            System.IO.File.Delete(filePath);
-                        }
-                        catch
-                        {
-                            // Log cleanup failure but don't throw
-                            Console.WriteLine($"Failed to clean up file after error: {filePath}");
-                        }
-                    }
-                    return Json(new { success = false, message = $"Error processing upload: {ex.Message}" });
+                    var json = await System.IO.File.ReadAllTextAsync(tracksJsonPath);
+                    tracks = JsonSerializer.Deserialize<List<TrackInfo>>(json) ?? new List<TrackInfo>();
                 }
+                else
+                {
+                    tracks = new List<TrackInfo>();
+                }
+
+                // Randomly assign age group
+                string[] ageGroups = new[] { "Young", "Old" };
+                Random random = new Random();
+                string randomAgeGroup = ageGroups[random.Next(ageGroups.Length)];
+
+                var track = new TrackInfo
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Name = trackName,
+                    FilePath = filePath,
+                    UploadDate = DateTime.Now,
+                    Duration = duration,
+                    IsRecording = isRecording,
+                    AgeGroup = randomAgeGroup // Add the random age group
+                };
+
+                tracks.Add(track);
+                await System.IO.File.WriteAllTextAsync(tracksJsonPath,
+                    JsonSerializer.Serialize(tracks, new JsonSerializerOptions { WriteIndented = true }));
+
+                var playlists = await System.IO.File.ReadAllTextAsync(playlistsPath);
+                var playlistsList = JsonSerializer.Deserialize<List<PlaylistInfo>>(playlists) ?? new List<PlaylistInfo>();
+
+                var playlist = playlistsList.FirstOrDefault(p => p.Id == playlistId);
+                if (playlist != null)
+                {
+                    playlist.Tracks ??= new List<string>();
+                    playlist.Tracks.Add(track.Id);
+                    playlist.TrackCount = playlist.Tracks.Count;
+
+                    await System.IO.File.WriteAllTextAsync(playlistsPath,
+                        JsonSerializer.Serialize(playlistsList, new JsonSerializerOptions { WriteIndented = true }));
+                }
+
+                return Json(new { success = true });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = $"Upload failed: {ex.Message}" });
+                return Json(new { success = false, message = ex.Message });
             }
         }
 
@@ -767,23 +739,24 @@ namespace PUTP2.Controllers
         [Route("Music/GetAudio/{fileName}")]
         public IActionResult GetAudio(string fileName, bool isTuneIn = false)
         {
-            var basePath = isTuneIn ? Path.Combine(_env.ContentRootPath, "Data", "TuneInSongs") :
-                                       Path.Combine(_env.ContentRootPath, "Data", "UploadedSongs");
-            var filePath = Path.Combine(basePath, fileName);
-
-            if (!System.IO.File.Exists(filePath))
-            {
-                 Console.WriteLine($"Audio file not found: {filePath}");
-                return NotFound();
-            }
             try
             {
-                 return PhysicalFile(filePath, "audio/mpeg", enableRangeProcessing: true);
+                var uploadsDir = isTuneIn ? tuneInUploadsPath : uploadsPath;
+                var filePath = Path.Combine(uploadsDir, fileName);
+
+                if (!System.IO.File.Exists(filePath))
+                {
+                    Console.WriteLine($"Audio file not found at: {filePath}");
+                    return NotFound();
+                }
+
+                var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+                return File(fileStream, "audio/mpeg", fileName);
             }
-             catch (Exception ex)
+            catch (Exception ex)
             {
-                 Console.WriteLine($"Error serving audio file {filePath}: {ex.Message}");
-                 return StatusCode(500, "Internal server error");
+                Console.WriteLine($"Error serving audio file: {ex.Message}");
+                return StatusCode(500, "Error serving audio file");
             }
         }
 
@@ -840,92 +813,27 @@ namespace PUTP2.Controllers
                         {
                             Console.WriteLine($"Found track: {track.Name} with FilePath: {track.FilePath}");
                             
-                            // Extract the filename from the stored path, handling both forward and backslashes
-                            var storedFileName = Path.GetFileName(track.FilePath.Replace('/', '\\'));
+                            // Extract the filename from the stored path
+                            var storedFileName = Path.GetFileName(track.FilePath);
                             Console.WriteLine($"Extracted filename: {storedFileName}");
 
-                            // Try to find the audio file by searching in the TuneInSongs directory
-                            var audioFiles = Directory.GetFiles(tuneInUploadsPath, "*.mp3");
-                            Console.WriteLine($"Found {audioFiles.Length} audio files in {tuneInUploadsPath}");
-                            
-                            // Try multiple matching strategies
-                            string audioFileName = null;
-                            
-                            // Strategy 1: Exact match
-                            var audioFile = audioFiles.FirstOrDefault(f => 
-                                Path.GetFileName(f).Equals(storedFileName, StringComparison.OrdinalIgnoreCase));
-                            
-                            if (audioFile != null)
+                            // Create a copy of the track with the updated file path
+                            var trackWithUrl = new TrackInfo
                             {
-                                audioFileName = Path.GetFileName(audioFile);
-                                Console.WriteLine($"Found exact match: {audioFileName}");
-                            }
-                            else
-                            {
-                                // Strategy 2: Match by GUID
-                                var guidMatch = storedFileName.Split('_').Last().Replace(".mp3", "");
-                                audioFile = audioFiles.FirstOrDefault(f => 
-                                    Path.GetFileName(f).Contains(guidMatch, StringComparison.OrdinalIgnoreCase));
-                                
-                                if (audioFile != null)
-                                {
-                                    audioFileName = Path.GetFileName(audioFile);
-                                    Console.WriteLine($"Found GUID match: {audioFileName}");
-                                }
-                                else
-                                {
-                                    // Strategy 3: Match by track ID
-                                    audioFile = audioFiles.FirstOrDefault(f => 
-                                        Path.GetFileName(f).Contains(trackId, StringComparison.OrdinalIgnoreCase));
-                                    
-                                    if (audioFile != null)
-                                    {
-                                        audioFileName = Path.GetFileName(audioFile);
-                                        Console.WriteLine($"Found track ID match: {audioFileName}");
-                                    }
-                                }
-                            }
-
-                            if (!string.IsNullOrEmpty(audioFileName))
-                            {
-                                var audioFilePath = Path.Combine(tuneInUploadsPath, audioFileName);
-                                
-                                if (System.IO.File.Exists(audioFilePath))
-                                {
-                                    Console.WriteLine($"Audio file exists at: {audioFilePath}");
-                                    
-                                    // Create a copy of the track with the updated file path
-                                    var trackWithUrl = new TrackInfo
-                                    {
-                                        Id = track.Id,
-                                        Name = track.Name ?? "Untitled Track",
-                                        UploadDate = track.UploadDate,
-                                        Duration = !string.IsNullOrEmpty(track.Duration) ? track.Duration : "0:00",
-                                        IsRecording = track.IsRecording,
-                                        Artist = track.Artist ?? "Unknown Artist",
-                                        UserTag = track.UserTag ?? track.Artist ?? "Unknown Artist",
-                                        Location = track.Location ?? "Unknown Location",
-                                        ImageUrl = !string.IsNullOrEmpty(track.ImageUrl) ? track.ImageUrl : "/images/default-album-cover.jpg",
-                                        FilePath = Url.Action("GetAudio", "Music", new { fileName = audioFileName, isTuneIn = true })
-                                    };
-                                    Console.WriteLine($"Created track with URL: {trackWithUrl.FilePath}");
-                                    playlistTracks.Add(trackWithUrl);
-                                }
-                                else
-                                {
-                                    Console.WriteLine($"Audio file does not exist at: {audioFilePath}");
-                                }
-                            }
-                            else
-                            {
-                                Console.WriteLine($"No matching audio file found for {storedFileName}");
-                                // Log all available files for debugging
-                                Console.WriteLine("Available files:");
-                                foreach (var file in audioFiles)
-                                {
-                                    Console.WriteLine($"- {Path.GetFileName(file)}");
-                                }
-                            }
+                                Id = track.Id,
+                                Name = track.Name ?? "Untitled Track",
+                                UploadDate = track.UploadDate,
+                                Duration = !string.IsNullOrEmpty(track.Duration) ? track.Duration : "0:00",
+                                IsRecording = track.IsRecording,
+                                Artist = track.Artist ?? "Unknown Artist",
+                                UserTag = track.UserTag ?? track.Artist ?? "Unknown Artist",
+                                Location = track.Location ?? "Unknown Location",
+                                ImageUrl = !string.IsNullOrEmpty(track.ImageUrl) ? track.ImageUrl : "/images/default-album-cover.jpg",
+                                FilePath = Url.Action("GetAudio", "Music", new { fileName = storedFileName, isTuneIn = true }),
+                                AgeGroup = track.AgeGroup
+                            };
+                            Console.WriteLine($"Created track with URL: {trackWithUrl.FilePath}");
+                            playlistTracks.Add(trackWithUrl);
                         }
                         else
                         {
@@ -988,7 +896,8 @@ namespace PUTP2.Controllers
                     FilePath = fileName, // Store only the filename
                     UploadDate = DateTime.Now,
                     Duration = duration ?? "0:00",
-                    IsRecording = true
+                    IsRecording = true,
+                    AgeGroup = "Young" // Default to Young for new recordings
                 };
 
                 // Update tracks.json

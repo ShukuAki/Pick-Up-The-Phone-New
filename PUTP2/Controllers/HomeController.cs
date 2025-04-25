@@ -15,7 +15,7 @@ namespace PUTP2.Controllers
 
         public IActionResult Index()
         {
-            return View();
+            return View("WelcomeSplash");
         }
 
         public IActionResult Privacy()

@@ -9,7 +9,8 @@
     "Artist": null,
     "UserTag": null,
     "Location": null,
-    "ImageUrl": null
+    "ImageUrl": null,
+    "AgeGroup": "Young"
   },
   {
     "Id": "92aa6c75-3efa-41b5-ab3c-e82f8d5f6097",
@@ -21,7 +22,8 @@
     "Artist": null,
     "UserTag": null,
     "Location": null,
-    "ImageUrl": null
+    "ImageUrl": null,
+    "AgeGroup": "Old"
   },
   {
     "Id": "13a7182c-6472-410e-b3d4-470719e42635",
@@ -33,7 +35,8 @@
     "Artist": null,
     "UserTag": null,
     "Location": null,
-    "ImageUrl": null
+    "ImageUrl": null,
+    "AgeGroup": "Young"
   },
   {
     "Id": "5ec30042-5246-4cd0-92af-0a834f0dd093",
@@ -45,7 +48,8 @@
     "Artist": null,
     "UserTag": null,
     "Location": null,
-    "ImageUrl": null
+    "ImageUrl": null,
+    "AgeGroup": "Old"
   },
   {
     "Id": "f9ca3f85-c63f-4345-8d92-8a9f7c8e3698",
@@ -57,7 +61,8 @@
     "Artist": null,
     "UserTag": null,
     "Location": null,
-    "ImageUrl": null
+    "ImageUrl": null,
+    "AgeGroup": "Young"
   },
   {
     "Id": "db49ef81-654a-4a93-8060-e6db2be9d1f9",
@@ -69,7 +74,8 @@
     "Artist": null,
     "UserTag": null,
     "Location": null,
-    "ImageUrl": null
+    "ImageUrl": null,
+    "AgeGroup": "Old"
   },
   {
     "Id": "1565f73a-89bc-4b1e-81fc-b1c6d46e9e1b",
@@ -81,7 +87,8 @@
     "Artist": null,
     "UserTag": null,
     "Location": null,
-    "ImageUrl": null
+    "ImageUrl": null,
+    "AgeGroup": "Young"
   },
   {
     "Id": "4abd8130-2102-4caa-9bf1-3fb6967192bc",
@@ -93,7 +100,8 @@
     "Artist": null,
     "UserTag": null,
     "Location": null,
-    "ImageUrl": null
+    "ImageUrl": null,
+    "AgeGroup": "Old"
   },
   {
     "Id": "4712289e-e9d6-4937-a5dc-1be8fc595ded",
@@ -105,7 +113,8 @@
     "Artist": null,
     "UserTag": null,
     "Location": null,
-    "ImageUrl": null
+    "ImageUrl": null,
+    "AgeGroup": "Young"
   },
   {
     "Id": "a4bdd755-adb4-49eb-a200-66568dbba944",
@@ -117,7 +126,8 @@
     "Artist": null,
     "UserTag": null,
     "Location": null,
-    "ImageUrl": null
+    "ImageUrl": null,
+    "AgeGroup": "Old"
   },
   {
     "Id": "0d3782b2-9eb5-40a5-93fc-8f040e0aaeeb",
@@ -129,7 +139,8 @@
     "Artist": null,
     "UserTag": null,
     "Location": null,
-    "ImageUrl": null
+    "ImageUrl": null,
+    "AgeGroup": "Young"
   },
   {
     "Id": "cee6b80d-b398-4e6d-adac-d38a70a5906d",
@@ -141,7 +152,8 @@
     "Artist": null,
     "UserTag": null,
     "Location": null,
-    "ImageUrl": null
+    "ImageUrl": null,
+    "AgeGroup": "Old"
   },
   {
     "Id": "e2ae1826-ff6f-4b05-8d97-797e543cc07c",
@@ -153,7 +165,8 @@
     "Artist": null,
     "UserTag": null,
     "Location": null,
-    "ImageUrl": null
+    "ImageUrl": null,
+    "AgeGroup": "Young"
   },
   {
     "Id": "1a0a3634-76da-4b11-9c30-a7487124f360",
@@ -165,7 +178,8 @@
     "Artist": null,
     "UserTag": null,
     "Location": null,
-    "ImageUrl": null
+    "ImageUrl": null,
+    "AgeGroup": "Old"
   },
   {
     "Id": "a3378466-4a7a-423a-9299-104e69839119",
@@ -177,7 +191,8 @@
     "Artist": null,
     "UserTag": null,
     "Location": null,
-    "ImageUrl": null
+    "ImageUrl": null,
+    "AgeGroup": "Young"
   },
   {
     "Id": "a71472d9-435e-4fca-ba5e-29826180f209",
@@ -189,7 +204,8 @@
     "Artist": null,
     "UserTag": null,
     "Location": null,
-    "ImageUrl": null
+    "ImageUrl": null,
+    "AgeGroup": "Old"
   },
   {
     "Id": "639a6176-2dea-4ed5-8006-84e068e6f41f",
@@ -201,7 +217,8 @@
     "Artist": null,
     "UserTag": null,
     "Location": "Unknown",
-    "ImageUrl": "/images/default-album-cover.jpg"
+    "ImageUrl": "/images/default-album-cover.jpg",
+    "AgeGroup": "Young"
   },
   {
     "Id": "5612128d-afc6-4ef3-8e3f-61cc4abe6005",
@@ -213,7 +230,8 @@
     "Artist": null,
     "UserTag": null,
     "Location": "Unknown",
-    "ImageUrl": "/images/default-album-cover.jpg"
+    "ImageUrl": "/images/default-album-cover.jpg",
+    "AgeGroup": "Old"
   },
   {
     "Id": "92540cc7-b554-4883-ad9b-1417faefd36c",
@@ -225,7 +243,8 @@
     "Artist": null,
     "UserTag": null,
     "Location": "Unknown",
-    "ImageUrl": "/images/default-album-cover.jpg"
+    "ImageUrl": "/images/default-album-cover.jpg",
+    "AgeGroup": "Young"
   },
   {
     "Id": "3727c555-6081-4967-8cca-12fe037f3771",
@@ -237,7 +256,8 @@
     "Artist": null,
     "UserTag": null,
     "Location": "Unknown",
-    "ImageUrl": "/images/default-album-cover.jpg"
+    "ImageUrl": "/images/default-album-cover.jpg",
+    "AgeGroup": "Old"
   },
   {
     "Id": "211ca0de-68b4-4451-813a-0b72aa7f5a14",
@@ -249,7 +269,8 @@
     "Artist": null,
     "UserTag": null,
     "Location": "Unknown",
-    "ImageUrl": "/images/default-album-cover.jpg"
+    "ImageUrl": "/images/default-album-cover.jpg",
+    "AgeGroup": "Young"
   },
   {
     "Id": "6e81d032-1b46-4139-90ba-053fb932fdd3",
@@ -261,7 +282,8 @@
     "Artist": null,
     "UserTag": null,
     "Location": "Unknown",
-    "ImageUrl": "/images/default-album-cover.jpg"
+    "ImageUrl": "/images/default-album-cover.jpg",
+    "AgeGroup": "Old"
   },
   {
     "Id": "ee6565e3-93af-4d2b-931d-187f060af475",
@@ -273,6 +295,7 @@
     "Artist": null,
     "UserTag": null,
     "Location": "Unknown",
-    "ImageUrl": "/images/default-album-cover.jpg"
+    "ImageUrl": "/images/default-album-cover.jpg",
+    "AgeGroup": "Young"
   }
 ]

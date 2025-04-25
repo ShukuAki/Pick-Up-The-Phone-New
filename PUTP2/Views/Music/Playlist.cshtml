@@ -19,6 +19,12 @@
 
     <div class="playlist-header">
         <h1 class="playlist-title">@Model.Playlist.Title</h1>
+        <div class="filter-container">
+            <div class="age-filter-container">
+                <button class="age-filter-btn" data-age-group="Young">GrandChild</button>
+                <button class="age-filter-btn" data-age-group="Old">Grandparents</button>
+            </div>
+        </div>
     </div>
 
     <div class="safari-track-list-container">
@@ -26,16 +32,16 @@
         {
             foreach (var track in Model.Tracks)
             {
-                <div class="track-card-safari" data-track-id="@track.Id">
+                <div class="track-card-safari" data-track-id="@track.Id" data-age-group="@track.AgeGroup" data-track-name="@track.Name.ToLower()">
                     <div class="track-card-content">
-                         <h3 class="track-card-title">@track.Name</h3>
-                         <p class="track-card-details">Uploaded: @track.UploadDate.ToString("MMM dd, yyyy") | Duration: @track.Duration</p>
+                        <h3 class="track-card-title">@track.Name</h3>
+                        <p class="track-card-details">Uploaded: @track.UploadDate.ToString("MMM dd, yyyy") | Duration: @track.Duration</p>
                         
-                         <button class="play-button" onclick="playTrack('@track.Id')">
-                             <i class="fas fa-play"></i>
-                         </button>
+                        <button class="play-button" onclick="playTrack('@track.Id')">
+                            <i class="fas fa-play"></i>
+                        </button>
                         
-                         <button class="delete-track-btn" onclick="deleteTrack('@track.Id', '@Model.Playlist.Id')">
+                        <button class="delete-track-btn" onclick="deleteTrack('@track.Id', '@Model.Playlist.Id')">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
@@ -89,13 +95,17 @@
         }
 
         .playlist-header {
-            text-align: center;
-            margin-bottom: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
         }
 
         .playlist-title {
             font-size: 2.5em;
-            color: var(--text-primary);
+            color: #000000;
+            margin-bottom: 15px;
+            text-align: center;
         }
 
         .safari-track-list-container {
@@ -135,9 +145,9 @@
         }
 
         .track-card-content {
-            background-color: var(--bg-card, #DCE5DC);
+            background-color: #f5e5d1;
             color: var(--text-primary);
-            border: 1px solid var(--secondary-accent, rgba(0,0,0,0.1));
+            border: 1px solid #bf6713;
             border-radius: 12px;
             padding: 20px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
@@ -147,6 +157,7 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            transition: all 0.3s ease;
         }
 
         .track-card-safari:hover {
@@ -155,16 +166,34 @@
             transition: transform 0.3s ease, z-index 0s ease;
         }
 
+        .track-card-safari:hover .track-card-content {
+            background-color: #bf6713;
+        }
+
+        .track-card-safari:active .track-card-content {
+            background-color: #bf6713;
+        }
+
+        .track-card-safari:hover .track-card-title,
+        .track-card-safari:hover .track-card-details,
+        .track-card-safari:active .track-card-title,
+        .track-card-safari:active .track-card-details {
+             color: #000000;
+        }
+
         .track-card-title {
             font-size: 1.2em;
             margin: 0 0 5px 0;
             font-weight: bold;
+            color: var(--text-primary);
+            transition: color 0.3s ease;
         }
 
         .track-card-details {
             font-size: 0.9em;
             color: var(--text-secondary);
             margin-bottom: 15px;
+            transition: color 0.3s ease;
         }
 
         .play-button {
@@ -246,6 +275,42 @@
             transform: scale(1.1);
         }
 
+        .filter-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        .age-filter-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .age-filter-btn {
+            padding: 8px 20px;
+            border: 1px solid #bf6713;
+            background: #f5e5d1;
+            color: #000000;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+
+        .age-filter-btn:hover,
+        .age-filter-btn.active {
+            background: #bf6713;
+            color: #f5e5d1;
+            border-color: #bf6713;
+            transform: scale(1.05);
+        }
+
         @@media (max-width: 768px) {
             .playlist-title {
                 font-size: 2em;
@@ -280,6 +345,9 @@
              .delete-track-btn {
                  right: 10px;
             }
+            .filter-container {
+                gap: 10px;
+            }
         }
     </style>
 }
@@ -296,9 +364,9 @@
             try {
                 const response = await fetch(`/Music/DeleteTrack?trackId=${trackId}&playlistId=${playlistId}`, {
                     method: 'POST',
-                     headers: {
+                    headers: {
                         'Accept': 'application/json'
-                     }
+                    }
                 });
 
                 if (!response.ok) {
@@ -314,7 +382,7 @@
                         trackElement.remove();
                         const container = document.querySelector('.safari-track-list-container');
                         if (!container.querySelector('.track-card-safari')) {
-                             container.innerHTML = '<div class="empty-state-message"><h3>No tracks left in this playlist.</h3></div>';
+                            container.innerHTML = '<div class="empty-state-message"><h3>No tracks left in this playlist.</h3></div>';
                         }
                     }
                     console.log('Track deleted successfully!');
@@ -322,32 +390,53 @@
                     alert('Error deleting track: ' + (result.message || 'Unknown error'));
                 }
             } catch (error) {
-                 console.error('Error deleting track:', error);
-                 alert('Error deleting track: ' + error.message);
+                console.error('Error deleting track:', error);
+                alert('Error deleting track: ' + error.message);
             }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            const container = document.querySelector('.safari-track-list-container');
-            if (!container) return;
-
-            container.addEventListener('scroll', () => {
-                const scrollY = container.scrollTop;
-                const cards = container.querySelectorAll('.track-card-safari');
-                const containerHeight = container.clientHeight;
-
-                cards.forEach((card, index) => {
-                    const cardTop = card.offsetTop - scrollY;
-                    const cardHeight = card.offsetHeight;
-                    const viewportFactor = (containerHeight - (cardTop + cardHeight / 2)) / containerHeight;
-                    
-                    const scale = 0.9 + 0.1 * (1 - Math.abs(viewportFactor - 0.5) * 2);
-                    const opacity = 0.7 + 0.3 * (1 - Math.abs(viewportFactor - 0.5) * 2);
-                });
-            }, { passive: true });
+            console.log('DOM Content Loaded for Playlist.cshtml');
             
-            container.dispatchEvent(new Event('scroll'));
-        });
+            const container = document.querySelector('.safari-track-list-container');
+            const filterButtons = document.querySelectorAll('.age-filter-btn');
+            let currentAgeGroup = null;
+            
+            function filterTracks() {
+                console.log('Filtering tracks...');
+                const tracks = document.querySelectorAll('.track-card-safari');
+                
+                tracks.forEach(track => {
+                    const trackAgeGroup = track.dataset.ageGroup;
+                    const matchesAge = currentAgeGroup === null || trackAgeGroup === currentAgeGroup;
+                    
+                    console.log(`Track Age: ${trackAgeGroup}, Matches Age: ${matchesAge}`);
+                    
+                    if (matchesAge) {
+                        track.style.display = '';
+                    } else {
+                        track.style.display = 'none';
+                    }
+                });
+            }
 
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    console.log('Filter button clicked:', this.dataset.ageGroup);
+                    
+                    if (this.classList.contains('active')) {
+                         this.classList.remove('active');
+                         currentAgeGroup = null;
+                    } else {
+                        filterButtons.forEach(btn => btn.classList.remove('active'));
+                        this.classList.add('active');
+                        currentAgeGroup = this.dataset.ageGroup;
+                    }
+                    filterTracks();
+                });
+            });
+
+            filterTracks();
+        });
     </script>
 } 
