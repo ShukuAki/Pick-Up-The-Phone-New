@@ -12,5 +12,6 @@ namespace PUTP2.Models
         public string AudioUrl { get; set; }
         public DateTime UploadDate { get; set; }
         public string Duration { get; set; }
+        public string PlaylistTitle { get; set; }
     }
 } 

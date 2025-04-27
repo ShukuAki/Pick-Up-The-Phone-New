@@ -26,6 +26,21 @@
                     <label for="recordingName">Track Name:</label>
                     <input type="text" id="recordingName" class="form-control" placeholder="Enter name for recording" />
                 </div>
+                <div class="form-group">
+                    <label for="recordingAgeGroup">Age Group:</label>
+                    <select id="recordingAgeGroup" class="form-control">
+                        <option value="Young">Grandchild</option>
+                        <option value="Old">Grandparent</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="recordingLocation">Location:</label>
+                    <input type="text" id="recordingLocation" class="form-control" placeholder="Enter location" />
+                </div>
+                <div class="form-group">
+                    <label for="recordingImage">Image (optional):</label>
+                    <input type="file" id="recordingImage" class="form-control" accept="image/*" />
+                </div>
                 <div class="recording-controls">
                     <button id="startRecording" class="btn btn-record"><i class="fas fa-circle"></i> Start</button>
                     <button id="stopRecording" class="btn btn-stop" disabled><i class="fas fa-stop"></i> Stop</button>
@@ -50,6 +65,21 @@
                     <div class="form-group">
                         <label for="uploadTrackName">Track Name:</label>
                         <input type="text" id="uploadTrackName" name="trackName" class="form-control" placeholder="Enter track name" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="uploadAgeGroup">Age Group:</label>
+                        <select id="uploadAgeGroup" name="ageGroup" class="form-control">
+                            <option value="Young">GrandChild</option>
+                            <option value="Old">Grandparents</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="uploadLocation">Location:</label>
+                        <input type="text" id="uploadLocation" name="location" class="form-control" placeholder="Enter location" />
+                    </div>
+                    <div class="form-group">
+                        <label for="uploadImage">Image (optional):</label>
+                        <input type="file" id="uploadImage" name="imageFile" class="form-control" accept="image/*" />
                     </div>
                     <div class="form-group">
                         <label for="trackFile">MP3 File:</label>
@@ -247,6 +277,8 @@
             const audioPlayback = document.getElementById('audioPlayback');
             const recordingStatus = document.getElementById('recordingStatus');
             const recordingNameInput = document.getElementById('recordingName');
+            const recordingAgeGroupInput = document.getElementById('recordingAgeGroup');
+            const recordingLocationInput = document.getElementById('recordingLocation');
             const uploadRecordingButton = document.getElementById('uploadRecordingButton');
 
             let mediaRecorder;
@@ -345,7 +377,15 @@
                 formData.append('audioFile', audioBlob, `${trackName}.mp3`); // Send as a file
                 formData.append('trackName', trackName);
                 formData.append('playlistId', '@playlistId');
+                formData.append('ageGroup', recordingAgeGroupInput.value);
+                formData.append('location', recordingLocationInput.value);
+                formData.append('isRecording', true);
                 formData.append('duration', uploadRecordingButton.dataset.duration || '0:00');
+                // Add image if present
+                const recordingImageInput = document.getElementById('recordingImage');
+                if (recordingImageInput && recordingImageInput.files.length > 0) {
+                    formData.append('imageFile', recordingImageInput.files[0]);
+                }
 
                 try {
                     const response = await fetch('/Music/SaveRecording', { // Target the new POST action
@@ -389,6 +429,14 @@
                  submitButton.disabled = true;
 
                  const formData = new FormData(uploadForm);
+                 formData.append('ageGroup', document.getElementById('uploadAgeGroup').value);
+                 formData.append('location', document.getElementById('uploadLocation').value);
+                 formData.append('isRecording', false);
+                 // Add image if present
+                 const uploadImageInput = document.getElementById('uploadImage');
+                 if (uploadImageInput && uploadImageInput.files.length > 0) {
+                     formData.append('imageFile', uploadImageInput.files[0]);
+                 }
 
                  try {
                     const response = await fetch('/Music/UploadTrack', { // Target the UploadTrack action

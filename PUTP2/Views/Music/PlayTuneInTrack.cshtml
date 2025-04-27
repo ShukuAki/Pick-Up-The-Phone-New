@@ -14,7 +14,7 @@
         <div class="vinyl-record" id="vinyl">
             <div class="vinyl-grooves"></div>
             <div class="vinyl-label">
-                <img src="/images/234.png" alt="Vinyl Label" class="label-image">
+                <img src="@Model.ImageUrl" alt="Vinyl Label" class="label-image">
             </div>
         </div>
         <picture class="tonearm" id="tonearm">
@@ -32,7 +32,7 @@
                 <span class="metadata-value">@Model.Location</span>
             </div>
             <p class="metadata-description">
-                Message to your (future) grandchildren
+                @Model.PlaylistTitle
             </p>
         </div>
     </div>

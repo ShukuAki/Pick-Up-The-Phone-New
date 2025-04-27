@@ -21,8 +21,9 @@
         <h1 class="playlist-title">@Model.Playlist.Title</h1>
         <div class="filter-container">
             <div class="age-filter-container">
-                <button class="age-filter-btn" data-age-group="Young">GrandChild</button>
-                <button class="age-filter-btn" data-age-group="Old">Grandparents</button>
+                <button class="age-filter-btn active" data-age-group="All">All</button>
+                <button class="age-filter-btn" data-age-group="Young">Grandchild</button>
+                <button class="age-filter-btn" data-age-group="Old">Grandparent</button>
             </div>
         </div>
     </div>
@@ -36,6 +37,10 @@
                     <div class="track-card-content">
                         <h3 class="track-card-title">@track.Name</h3>
                         <p class="track-card-details">Uploaded: @track.UploadDate.ToString("MMM dd, yyyy") | Duration: @track.Duration</p>
+                        <div class="track-card-meta">
+                            <span class="age-group">👤 @track.AgeGroup</span>
+                            <span class="location">📍 @track.Location</span>
+                        </div>
                         
                         <button class="play-button" onclick="playTrack('@track.Id')">
                             <i class="fas fa-play"></i>
@@ -167,11 +172,11 @@
         }
 
         .track-card-safari:hover .track-card-content {
-            background-color: #bf6713;
+             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
         }
 
         .track-card-safari:active .track-card-content {
-            background-color: #bf6713;
+             box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
         }
 
         .track-card-safari:hover .track-card-title,
@@ -186,14 +191,12 @@
             margin: 0 0 5px 0;
             font-weight: bold;
             color: var(--text-primary);
-            transition: color 0.3s ease;
         }
 
         .track-card-details {
             font-size: 0.9em;
             color: var(--text-secondary);
             margin-bottom: 15px;
-            transition: color 0.3s ease;
         }
 
         .play-button {
@@ -252,9 +255,9 @@
         }
 
         .record-button {
-            position: absolute;
-            top: 15px;
-            left: 55px;
+            position: fixed;
+            bottom: 15px;
+            right: 55px;
             color: var(--text-primary);
             font-size: 18px;
             text-decoration: none;
@@ -408,7 +411,7 @@
                 
                 tracks.forEach(track => {
                     const trackAgeGroup = track.dataset.ageGroup;
-                    const matchesAge = currentAgeGroup === null || trackAgeGroup === currentAgeGroup;
+                    const matchesAge = currentAgeGroup === null || currentAgeGroup === 'All' || trackAgeGroup === currentAgeGroup;
                     
                     console.log(`Track Age: ${trackAgeGroup}, Matches Age: ${matchesAge}`);
                     

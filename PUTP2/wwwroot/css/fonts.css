@@ -1,0 +1,86 @@
+/* Americane Font Family */
+@font-face {
+    font-family: 'Americane';
+    src: url('../fonts/HvDTrial_Americane-Regular-BF64939f86234b5.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Americane';
+    src: url('../fonts/HvDTrial_Americane-Italic-BF64939f8602842.otf') format('opentype');
+    font-weight: normal;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Americane';
+    src: url('../fonts/HvDTrial_Americane-Bold-BF64939f85824ae.otf') format('opentype');
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Americane';
+    src: url('../fonts/HvDTrial_Americane-BoldItalic-BF64939f85baeed.otf') format('opentype');
+    font-weight: bold;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Americane';
+    src: url('../fonts/HvDTrial_Americane-Light-BF64939f8610f57.otf') format('opentype');
+    font-weight: 300;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Americane';
+    src: url('../fonts/HvDTrial_Americane-LightItalic-BF64939f861512e.otf') format('opentype');
+    font-weight: 300;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Americane';
+    src: url('../fonts/HvDTrial_Americane-Medium-BF64939f860aa97.otf') format('opentype');
+    font-weight: 500;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Americane';
+    src: url('../fonts/HvDTrial_Americane-MediumItalic-BF64939f8609651.otf') format('opentype');
+    font-weight: 500;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Americane';
+    src: url('../fonts/HvDTrial_Americane-Heavy-BF64939f8612027.otf') format('opentype');
+    font-weight: 800;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Americane';
+    src: url('../fonts/HvDTrial_Americane-HeavyItalic-BF64939f85c085d.otf') format('opentype');
+    font-weight: 800;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Americane';
+    src: url('../fonts/HvDTrial_Americane-Black-BF64939f86040ec.otf') format('opentype');
+    font-weight: 900;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Americane';
+    src: url('../fonts/HvDTrial_Americane-BlackItalic-BF64939f8604945.otf') format('opentype');
+    font-weight: 900;
+    font-style: italic;
+}
+
+/* Note: Playfair, IBM Plex Sans, and Playfair Display fonts will be added when their specific files are available */ 

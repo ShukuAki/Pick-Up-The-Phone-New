@@ -90,7 +90,7 @@ namespace PUTP2.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> SaveRecording([FromForm] IFormFile audioFile, string trackName, string playlistId)
+        public async Task<IActionResult> SaveRecording([FromForm] IFormFile audioFile, string trackName, string playlistId, string ageGroup = null, string location = null, IFormFile imageFile = null)
         {
             try
             {
@@ -108,6 +108,21 @@ namespace PUTP2.Controllers
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
                     await audioFile.CopyToAsync(stream);
+                }
+
+                // Handle image upload
+                string imageUrl = "/images/default-album-cover.jpg";
+                if (imageFile != null && imageFile.Length > 0)
+                {
+                    var imagesDir = Path.Combine(_env.WebRootPath, "images");
+                    Directory.CreateDirectory(imagesDir);
+                    var imageFileName = $"track_{Guid.NewGuid()}{Path.GetExtension(imageFile.FileName)}";
+                    var imagePath = Path.Combine(imagesDir, imageFileName);
+                    using (var stream = new FileStream(imagePath, FileMode.Create))
+                    {
+                        await imageFile.CopyToAsync(stream);
+                    }
+                    imageUrl = $"/images/{imageFileName}";
                 }
 
                 // Read existing tracks
@@ -132,7 +147,10 @@ namespace PUTP2.Controllers
                     FilePath = filePath,
                     UploadDate = DateTime.Now,
                     Duration = "0:00", // You might want to calculate actual duration
-                    IsRecording = true
+                    IsRecording = true,
+                    AgeGroup = ageGroup ?? "Grandchild", // Default to GrandChild if not specified
+                    Location = location ?? "Unknown", // Default to Unknown if not specified
+                    ImageUrl = imageUrl
                 };
 
                 // Add new track to tracks list
@@ -294,7 +312,7 @@ namespace PUTP2.Controllers
         [ValidateAntiForgeryToken]
         [RequestFormLimits(MultipartBodyLengthLimit = 52428800)]
         [RequestSizeLimit(52428800)]
-        public async Task<IActionResult> UploadTrack([FromForm] IFormFile trackFile, [FromForm] string trackName, [FromForm] string playlistId, [FromForm] bool isRecording = false, [FromForm] bool isTuneIn = false, [FromForm] string duration = "0:00")
+        public async Task<IActionResult> UploadTrack([FromForm] IFormFile trackFile, [FromForm] string trackName, [FromForm] string playlistId, [FromForm] bool isRecording = false, [FromForm] bool isTuneIn = false, [FromForm] string duration = "0:00", [FromForm] string ageGroup = null, [FromForm] string location = null, [FromForm] IFormFile imageFile = null)
         {
             try
             {
@@ -312,6 +330,21 @@ namespace PUTP2.Controllers
                     await trackFile.CopyToAsync(stream);
                 }
 
+                // Handle image upload
+                string imageUrl = "/images/default-album-cover.jpg";
+                if (imageFile != null && imageFile.Length > 0)
+                {
+                    var imagesDir = Path.Combine(_env.WebRootPath, "images");
+                    Directory.CreateDirectory(imagesDir);
+                    var imageFileName = $"track_{Guid.NewGuid()}{Path.GetExtension(imageFile.FileName)}";
+                    var imagePath = Path.Combine(imagesDir, imageFileName);
+                    using (var stream = new FileStream(imagePath, FileMode.Create))
+                    {
+                        await imageFile.CopyToAsync(stream);
+                    }
+                    imageUrl = $"/images/{imageFileName}";
+                }
+
                 var tracksJsonPath = isTuneIn ? tuneInTracksJsonPath : this.tracksJsonPath;
                 List<TrackInfo> tracks;
 
@@ -325,11 +358,6 @@ namespace PUTP2.Controllers
                     tracks = new List<TrackInfo>();
                 }
 
-                // Randomly assign age group
-                string[] ageGroups = new[] { "Young", "Old" };
-                Random random = new Random();
-                string randomAgeGroup = ageGroups[random.Next(ageGroups.Length)];
-
                 var track = new TrackInfo
                 {
                     Id = Guid.NewGuid().ToString(),
@@ -338,7 +366,9 @@ namespace PUTP2.Controllers
                     UploadDate = DateTime.Now,
                     Duration = duration,
                     IsRecording = isRecording,
-                    AgeGroup = randomAgeGroup // Add the random age group
+                    AgeGroup = ageGroup ?? "Grandchild", // Default to GrandChild if not specified
+                    Location = location ?? "Unknown", // Default to Unknown if not specified
+                    ImageUrl = imageUrl
                 };
 
                 tracks.Add(track);
@@ -445,16 +475,22 @@ namespace PUTP2.Controllers
                     return NotFound("Audio file not found");
                 }
 
+                // Load playlists to find which playlist this track belongs to
+                var playlists = LoadAllPlaylists();
+                var playlist = playlists.FirstOrDefault(p => p.Tracks != null && p.Tracks.Contains(track.Id));
+                var playlistTitle = playlist?.Title ?? "Unknown Playlist";
+
                 var viewModel = new TrackViewModel
                 {
                     Id = track.Id,
                     Name = track.Name ?? "Untitled Track",
-                    UserTag = track.Artist ?? "USER TAG",
-                    Location = "LOCATION",
-                    ImageUrl = "/images/default-album-cover.jpg",
+                    UserTag = track.AgeGroup ?? "Unknown",
+                    Location = track.Location ?? "Unknown",
+                    ImageUrl = !string.IsNullOrEmpty(track.ImageUrl) ? track.ImageUrl : "/images/default-album-cover.jpg",
                     AudioUrl = $"/Music/GetAudio/{Path.GetFileName(track.FilePath)}",
                     UploadDate = track.UploadDate,
-                    Duration = track.Duration ?? "0:00"
+                    Duration = track.Duration ?? "0:00",
+                    PlaylistTitle = playlistTitle
                 };
 
                 return View(viewModel);
@@ -968,6 +1004,11 @@ namespace PUTP2.Controllers
 
                 Console.WriteLine($"Found track: {track.Name}");
 
+                // Load playlists to find which playlist this track belongs to
+                var playlists = LoadAllPlaylists();
+                var playlist = playlists.FirstOrDefault(p => p.Tracks != null && p.Tracks.Contains(track.Id));
+                var playlistTitle = playlist?.Title ?? "Unknown Playlist";
+
                 // Extract the filename from the stored path
                 var storedFileName = Path.GetFileName(track.FilePath.Replace('/', '\\'));
                 Console.WriteLine($"Looking for file: {storedFileName}");
@@ -1015,12 +1056,13 @@ namespace PUTP2.Controllers
                 {
                     Id = track.Id,
                     Name = track.Name ?? "Untitled Track",
-                    UserTag = track.UserTag ?? track.Artist ?? "Unknown Artist",
-                    Location = track.Location ?? "Unknown Location",
+                    UserTag = track.AgeGroup ?? "Unknown",
+                    Location = track.Location ?? "Unknown",
                     ImageUrl = !string.IsNullOrEmpty(track.ImageUrl) ? track.ImageUrl : "/images/default-album-cover.jpg",
                     AudioUrl = Url.Action("GetAudio", "Music", new { fileName = audioFileName, isTuneIn = true }),
                     UploadDate = track.UploadDate,
-                    Duration = !string.IsNullOrEmpty(track.Duration) ? track.Duration : "0:00"
+                    Duration = !string.IsNullOrEmpty(track.Duration) ? track.Duration : "0:00",
+                    PlaylistTitle = playlistTitle
                 };
 
                 Console.WriteLine($"Returning view with audio URL: {viewModel.AudioUrl}");
@@ -1043,13 +1085,55 @@ namespace PUTP2.Controllers
             try
             {
                 var json = System.IO.File.ReadAllText(playlistsPath);
-                return JsonSerializer.Deserialize<List<PlaylistInfo>>(json) ?? new List<PlaylistInfo>();
+                var playlists = JsonSerializer.Deserialize<List<PlaylistInfo>>(json) ?? new List<PlaylistInfo>();
+                
+                // Update track counts based on actual files
+                foreach (var playlist in playlists)
+                {
+                    if (playlist.Tracks != null)
+                    {
+                        // For Index (Vault) playlists
+                        var vaultTracks = LoadAllTracks().Where(t => playlist.Tracks.Contains(t.Id)).ToList();
+                        var actualVaultFiles = vaultTracks.Count(t => 
+                            !string.IsNullOrEmpty(t.FilePath) && 
+                            System.IO.File.Exists(Path.Combine(uploadsPath, Path.GetFileName(t.FilePath))));
+                        
+                        // For TuneIn playlists
+                        var tuneInTracks = LoadAllTuneInTracks().Where(t => playlist.Tracks.Contains(t.Id)).ToList();
+                        var actualTuneInFiles = tuneInTracks.Count(t => 
+                            !string.IsNullOrEmpty(t.FilePath) && 
+                            System.IO.File.Exists(Path.Combine(tuneInUploadsPath, Path.GetFileName(t.FilePath))));
+                        
+                        // Update the track count with the actual number of files
+                        playlist.TrackCount = actualVaultFiles + actualTuneInFiles;
+                    }
+                }
+                
+                return playlists;
             }
             catch (Exception ex)
             {
                 // Log error
                 Console.WriteLine($"Error loading playlists from {playlistsPath}: {ex.Message}");
                 return new List<PlaylistInfo>();
+            }
+        }
+
+        private List<TrackInfo> LoadAllTuneInTracks()
+        {
+            if (!System.IO.File.Exists(tuneInTracksJsonPath))
+            {
+                return new List<TrackInfo>();
+            }
+            try
+            {
+                var json = System.IO.File.ReadAllText(tuneInTracksJsonPath);
+                return JsonSerializer.Deserialize<List<TrackInfo>>(json) ?? new List<TrackInfo>();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading TuneIn tracks from {tuneInTracksJsonPath}: {ex.Message}");
+                return new List<TrackInfo>();
             }
         }
 
