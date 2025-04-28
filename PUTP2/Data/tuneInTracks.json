@@ -1,1 +1,54 @@
-[]
+[
+  {
+    "Id": "069c2a39-ff05-46a9-945f-641f7f7d94d6",
+    "Name": "test",
+    "FilePath": "C:\\Users\\John\\source\\repos\\Pick-Up-The-Phone-New\\PUTP2\\Data\\TuneInSongs\\8085609c-0cf5-4879-9148-a9f8700156a5.mp3",
+    "UploadDate": "2025-04-28T08:24:40.6106555+08:00",
+    "Duration": "0:00",
+    "IsRecording": false,
+    "Artist": null,
+    "UserTag": null,
+    "Location": "paris",
+    "ImageUrl": "/images/default-album-cover.jpg",
+    "AgeGroup": "Old"
+  },
+  {
+    "Id": "576fa41d-7576-42c6-baf0-b0ad5a86a039",
+    "Name": "tubero",
+    "FilePath": "C:\\Users\\John\\source\\repos\\Pick-Up-The-Phone-New\\PUTP2\\Data\\TuneInSongs\\a9f2a6b3-1ef7-4c26-a471-c2bf96c92a89.mp3",
+    "UploadDate": "2025-04-28T08:27:50.8008829+08:00",
+    "Duration": "0:00",
+    "IsRecording": false,
+    "Artist": null,
+    "UserTag": null,
+    "Location": "paris",
+    "ImageUrl": "/images/default-album-cover.jpg",
+    "AgeGroup": "Young"
+  },
+  {
+    "Id": "d45ffbe1-ad01-4b77-a7bf-6f3efb925f21",
+    "Name": "relive",
+    "FilePath": "C:\\Users\\John\\source\\repos\\Pick-Up-The-Phone-New\\PUTP2\\Data\\TuneInSongs\\345e3b20-f48e-4acc-8503-44a83998aa13.mp3",
+    "UploadDate": "2025-04-28T08:28:08.559288+08:00",
+    "Duration": "0:00",
+    "IsRecording": false,
+    "Artist": null,
+    "UserTag": null,
+    "Location": "pinas",
+    "ImageUrl": "/images/default-album-cover.jpg",
+    "AgeGroup": "Old"
+  },
+  {
+    "Id": "12a618ad-f49f-43fd-a18b-f1c8d15a7326",
+    "Name": "daw",
+    "FilePath": "C:\\Users\\John\\source\\repos\\Pick-Up-The-Phone-New\\PUTP2\\Data\\TuneInSongs\\49f1e602-eb9e-4829-8490-aab22413dfcf.mp3",
+    "UploadDate": "2025-04-28T09:21:54.219507+08:00",
+    "Duration": "0:00",
+    "IsRecording": false,
+    "Artist": null,
+    "UserTag": null,
+    "Location": "paris",
+    "ImageUrl": "/images/default-album-cover.jpg",
+    "AgeGroup": "Old"
+  }
+]

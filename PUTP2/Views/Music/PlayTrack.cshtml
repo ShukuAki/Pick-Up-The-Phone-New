@@ -27,14 +27,15 @@
         <h2 class="track-title">@Model.Name</h2>
         <div class="track-metadata">
             <div class="metadata-item">
-                <span class="metadata-label">@Model.UserTag</span>
-                <span class="metadata-divider">·</span>
+                <span class="metadata-label">@(Model.UserTag == "Young" ? "GrandChild" : Model.UserTag == "Old" ? "GrandParent" : Model.UserTag)</span>
+            </div>
+            <div class="metadata-item">
                 <span class="metadata-value">@Model.Location</span>
             </div>
-            <p class="metadata-description">
-                @Model.PlaylistTitle
-            </p>
         </div>
+        <p class="metadata-description">
+            @Model.PlaylistTitle
+        </p>
     </div>
 
     <div class="player-controls">
@@ -53,14 +54,39 @@
 
 @section Styles {
     <style>
-        /* Hide the footer bar */
+        :root {
+            --primary-bg: #FAF4EF;
+            --secondary-accent: #CFA8A2;
+            --highlight: #F2C94C;
+            --interactive: #88C9E6;
+            --text-primary: #2E2E2E;
+            --text-secondary: #666666;
+            --borders: #B2675E;
+            --card-bg: #FFFFFF;
+        }
+        [data-theme="dark"] {
+            --primary-bg: #1C1C1C;
+            --secondary-accent: #7F3B35;
+            --highlight: #F2C94C;
+            --interactive: #88C9E6;
+            --text-primary: #FFE7D3;
+            --text-secondary: #CFA8A2;
+            --borders: #B2675E;
+            --card-bg: #2B2B2B;
+        }
+        html, body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background-color: var(--primary-bg);
+            transition: background-color 0.3s ease;
+        }
         .footer-nav {
             display: none !important;
         }
-
         .turntable-container {
             height: 100vh;
-            background: #0a0a0a;
+            background: var(--primary-bg);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -69,29 +95,28 @@
             position: relative;
             overflow: hidden;
         }
-
         .back-button {
             position: absolute;
             top: 20px;
             left: 20px;
-            color: white;
+            color: var(--text-primary);
             font-size: 24px;
             cursor: pointer;
             z-index: 10;
         }
-
         .vinyl-player {
-            width: min(80vw, 80vh);
+            width: 340px;
+            max-width: 90vw;
             aspect-ratio: 1;
             position: relative;
-            margin: 40px auto;
+            margin: 32px auto 0 auto;
         }
-
         .vinyl-record {
             width: 100%;
             height: 100%;
             border-radius: 50%;
             background: #111;
+            border: 6px solid var(--secondary-accent);
             position: absolute;
             display: flex;
             align-items: center;
@@ -99,8 +124,8 @@
             animation: none;
             transition: transform 0.5s ease;
             overflow: hidden;
+            box-shadow: 0 8px 32px rgba(207, 168, 162, 0.18);
         }
-
         .vinyl-grooves {
             position: absolute;
             top: 0;
@@ -110,43 +135,38 @@
             border-radius: 50%;
             background: repeating-radial-gradient(
                 circle at center,
-                #151515 0,
-                #151515 1px,
-                #1d1d1d 2px,
-                #1d1d1d 3px
+                #222 0,
+                #222 1px,
+                #333 2px,
+                #333 3px
             );
-            opacity: 0.9;
+            opacity: 0.7;
         }
-
         .vinyl-record.playing {
             animation: spin 2s linear infinite;
         }
-
         .vinyl-record.stopping {
             animation: slowStop 1s linear forwards;
         }
-
         .vinyl-label {
             width: 25%;
             height: 25%;
             border-radius: 50%;
             overflow: hidden;
-            border: 2px solid #333;
+            border: 2px solid var(--borders);
             position: relative;
             z-index: 1;
-            background: none;
+            background: var(--interactive);
             display: flex;
             align-items: center;
             justify-content: center;
         }
-
         .label-image {
             width: 100%;
             height: 100%;
             object-fit: cover;
             border-radius: 50%;
         }
-
         .tonearm {
             position: absolute;
             top: -2%;
@@ -161,75 +181,69 @@
             max-width: 100px;
             background: none !important;
         }
-
         .tonearm.playing {
             transform: rotate(0deg);
         }
-
         .tonearm.stopping {
             transform: rotate(-20deg);
             transition: transform 1.2s ease-in-out;
         }
-
         .tonearm img {
             width: 100%;
             height: 100%;
             object-fit: contain;
             background: none !important;
         }
-
         .track-info {
-            color: white;
+            color: var(--text-primary);
             text-align: center;
             margin: 20px 0;
             width: 100%;
             max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
-
         .track-title {
             font-size: 24px;
             margin-bottom: 10px;
             font-weight: 600;
+            color: var(--text-primary);
         }
-
         .track-metadata {
             font-size: 14px;
             opacity: 0.9;
-        }
-
-        .metadata-item {
-            margin-bottom: 8px;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: center;
-            gap: 8px;
         }
-
+        .metadata-item {
+            margin-bottom: 0px;
+            display: block;
+            width: 100%;
+            text-align: center;
+        }
         .metadata-label {
-            color: #ccc;
+            color: var(--secondary-accent);
             text-transform: uppercase;
             font-size: 12px;
             letter-spacing: 1px;
         }
-
         .metadata-divider {
-            color: #666;
+            color: var(--borders);
         }
-
         .metadata-value {
-            color: #ccc;
+            color: var(--secondary-accent);
             text-transform: uppercase;
             font-size: 12px;
             letter-spacing: 1px;
         }
-
         .metadata-description {
             font-style: italic;
             opacity: 0.8;
             margin-top: 10px;
-            color: #999;
+            color: var(--text-secondary);
         }
-
         .player-controls {
             display: flex;
             flex-direction: column;
@@ -239,20 +253,18 @@
             width: 100%;
             max-width: 200px;
         }
-
         .control-group {
             display: flex;
             align-items: center;
             gap: 15px;
         }
-
         .control-btn {
             width: 50px;
             height: 50px;
             border-radius: 50%;
             border: none;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
+            background: var(--interactive);
+            color: var(--text-primary);
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -260,22 +272,21 @@
             font-size: 20px;
             transition: all 0.3s ease;
         }
-
         .control-btn.primary {
             width: 60px;
             height: 60px;
-            background: white;
-            color: black;
+            background: var(--highlight);
+            color: var(--text-primary);
         }
-
         .control-btn:hover {
             transform: scale(1.1);
+            background: var(--secondary-accent);
+            color: var(--primary-bg);
         }
-
         .nav-btn {
             background: none;
             border: none;
-            color: #666;
+            color: var(--text-secondary);
             font-size: 18px;
             cursor: pointer;
             padding: 8px;
@@ -286,16 +297,13 @@
             align-items: center;
             justify-content: center;
         }
-
         .nav-btn:hover {
-            color: white;
+            color: var(--highlight);
         }
-
         @@keyframes spin {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
         }
-
         @@keyframes slowStop {
             0% { 
                 transform: rotate(0deg); 
@@ -306,36 +314,31 @@
                 animation-timing-function: cubic-bezier(0.8, 0, 0.6, 1);
             }
         }
-
         @@media (max-width: 768px) {
             .tonearm {
                 width: 20%;
                 height: 40%;
                 top: -2%;
                 right: 10%;
-                max-width: 80px;
+                max-width: 60px;
             }
-
             .vinyl-player {
                 width: 90vw;
-                margin: 20px auto;
+                max-width: 320px;
+                margin: 16px auto 0 auto;
             }
-
             .track-title {
                 font-size: 20px;
             }
-
             .control-btn {
                 width: 44px;
                 height: 44px;
                 font-size: 18px;
             }
-
             .nav-btn {
                 font-size: 14px;
             }
         }
-
         @@media (max-width: 480px) {
             .tonearm {
                 width: 25%;
@@ -344,14 +347,6 @@
                 right: 8%;
                 max-width: 60px;
             }
-        }
-
-        .content-wrapper {
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
         }
     </style>
 }

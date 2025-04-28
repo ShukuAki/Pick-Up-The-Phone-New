@@ -38,7 +38,7 @@
                         <h3 class="track-card-title">@track.Name</h3>
                         <p class="track-card-details">Uploaded: @track.UploadDate.ToString("MMM dd, yyyy") | Duration: @track.Duration</p>
                         <div class="track-card-meta">
-                            <span class="age-group">👤 @track.AgeGroup</span>
+                            <span class="age-group">👤 @(track.AgeGroup == "Young" ? "GrandChild" : track.AgeGroup == "Old" ? "GrandParent" : track.AgeGroup)</span>
                             <span class="location">📍 @track.Location</span>
                         </div>
                         

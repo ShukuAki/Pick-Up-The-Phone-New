@@ -33,7 +33,7 @@
                          <h3 class="track-card-title">@track.Name</h3>
                          <p class="track-card-details">Uploaded: @track.UploadDate.ToString("MMM dd, yyyy") | Duration: @track.Duration</p>
                          <div class="track-card-meta">
-                             <span class="age-group">👤 @track.AgeGroup</span>
+                             <span class="age-group">👤 @(track.AgeGroup == "Young" ? "GrandChild" : track.AgeGroup == "Old" ? "GrandParent" : track.AgeGroup)</span>
                              <span class="location">📍 @track.Location</span>
                          </div>
                         
@@ -55,6 +55,10 @@
             </div>
         }
     </div>
+
+    <a asp-action="TuneInRecordUpload" asp-controller="Music" asp-route-playlistId="@Model.Playlist.Id" class="floating-add-track-btn" title="Add Track">
+        <i class="fas fa-microphone"></i>
+    </a>
 </div>
 
 @section Styles {
@@ -353,6 +357,34 @@
             .delete-track-btn {
                  right: 10px;
             }
+        }
+
+        .floating-add-track-btn {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            width: 60px;
+            height: 60px;
+            background: var(--interactive, #A0D8EF);
+            color: var(--text-primary, #222);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+            font-size: 2.2em;
+            z-index: 1000;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.2s;
+            text-decoration: none;
+        }
+        .floating-add-track-btn:hover {
+            background: var(--highlight, #F2C94C);
+            transform: scale(1.08);
+        }
+        .floating-add-track-btn i {
+            margin: 0;
         }
 
     </style>

@@ -21,7 +21,7 @@
     <h1 class="vault-title">The Vault</h1>
 
     <div class="filter-controls-container">
-        <input type="text" id="playlistSearchInput" class="search-input" placeholder="Search playlists...">
+        <input type="text" id="playlistSearchInput" class="search-input" placeholder="Search Playlists...">
         <div class="dropdown-container">
             <button class="dropdown-button" id="levelDropdownButton">
                 <span>Levels</span> <i class="fas fa-chevron-down"></i>
@@ -57,9 +57,6 @@
                                     </div>
                                 </div>
                             </div>
-                            <button class="delete-playlist-btn" onclick="deletePlaylist('@playlist.Id', '@playlist.Title')">
-                                <i class="fas fa-trash"></i>
-                            </button>
                         </div>
                     }
                 }
@@ -79,6 +76,34 @@
 
 @section Styles {
     <style>
+        @@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;700&display=swap');
+        @@font-face {
+            font-family: 'Americane';
+            src: url('/fonts/Americane-Bold.woff2') format('woff2'),
+                 url('/fonts/Americane-Bold.woff') format('woff');
+            font-weight: bold;
+            font-style: normal;
+        }
+        html, body, .vault-container, .playlist-cards-grid, .playlist-card-front, .playlist-card-back, .playlist-info, .playlist-info h2, .playlist-info p, .profile-button, .view-toggle-button, .theme-toggle-button, .switch-view-button, .upload-button {
+            color: #171717 !important;
+            font-family: 'IBM Plex Sans', Arial, sans-serif;
+            font-weight: 400;
+        }
+        .vault-title, h1.page-title, h1.vault-title, h1 {
+            font-family: 'Americane', Arial, sans-serif !important;
+            font-weight: bold !important;
+            color: #171717 !important;
+        }
+        .playlist-info h2, .panel-header h3, h2, h3, .sub-header {
+            font-family: 'IBM Plex Sans', Arial, sans-serif !important;
+            font-weight: 700 !important;
+            color: #171717 !important;
+        }
+        .playlist-info p, .playlist-info, p, span, label, input, select, button, a, .status-text, .form-control, .dropdown-content a, .dropdown-button, .create-playlist-btn {
+            font-family: 'IBM Plex Sans', Arial, sans-serif !important;
+            font-weight: 400 !important;
+            color: #171717 !important;
+        }
         /* Hide the footer bar */
         .footer-nav {
             display: none !important;
@@ -169,8 +194,9 @@
             margin-top: 20px;
             margin-bottom: 15px;
             font-size: 2.5em;
-            color: var(--text-primary);
+            color: #000000;
             transition: color 0.3s ease;
+            text-transform: none !important;
         }
 
         .playlist-cards-container {
@@ -357,6 +383,7 @@
             .playlist-cards-grid.side-scroll .playlist-card-wrapper.active {
                 transform: scale(1);
                 opacity: 1;
+                z-index: 2;
             }
 
             /* Adjust grid view card size for mobile using aspect-ratio */
@@ -456,6 +483,10 @@
 
         .switch-view-button:hover i {
             color: #000000;
+        }
+
+        .switch-view-button span {
+            text-transform: none !important;
         }
 
         .upload-button {
@@ -596,6 +627,7 @@
             align-items: center;
             width: 100%;
             transition: background-color 0.3s ease;
+            text-transform: none !important;
         }
 
         .dropdown-button:hover {
@@ -625,6 +657,7 @@
             margin-top: 5px;
             border: 1px solid var(--borders);
             width: 100%; 
+            text-transform: none !important;
         }
 
         .dropdown-content a {
@@ -711,55 +744,10 @@
 
 @section Scripts {
     <script>
-        function deletePlaylist(id, title) {
-            const modal = document.createElement('div');
-            modal.className = 'modal';
-            modal.innerHTML = `
-                <div class="modal-content">
-                    <h3>Delete Playlist</h3>
-                    <p>Are you sure you want to delete "${title}"?</p>
-                    <p>This action cannot be undone.</p>
-                    <div class="modal-buttons">
-                        <button class="confirm-delete" onclick="confirmDelete('${id}')">Delete</button>
-                        <button class="cancel-delete" onclick="closeModal()">Cancel</button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(modal);
-            modal.style.display = 'flex';
-        }
-
-        function closeModal() {
-            const modal = document.querySelector('.modal');
-            if (modal) {
-                modal.remove();
-            }
-        }
-
-        async function confirmDelete(id) {
-            try {
-                const response = await fetch(`/Music/DeletePlaylist?id=${id}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                const result = await response.json();
-                if (result.success) {
-                    const playlistCard = document.querySelector(`[data-playlist-id="${id}"]`);
-                    if (playlistCard) {
-                        playlistCard.remove();
-                    }
-                    alert('Playlist deleted successfully!');
-                    window.location.reload();
-                } else {
-                    alert('Error deleting playlist: ' + result.message);
-                }
-            } catch (error) {
-                alert('Error deleting playlist: ' + error.message);
-            } finally {
-                closeModal();
+        function hidePlaylistCard(id) {
+            const card = document.querySelector(`[data-playlist-id='${id}']`);
+            if (card) {
+                card.style.display = 'none';
             }
         }
 
@@ -908,6 +896,37 @@
 
             // Initial filter call 
             filterPlaylists(); 
+
+            // --- Mobile active card highlight for side-scroll ---
+            if (window.matchMedia('(max-width: 768px)').matches) {
+                const container = document.querySelector('.playlist-cards-grid');
+                const cards = Array.from(container.querySelectorAll('.playlist-card-wrapper'));
+                function updateActiveCard() {
+                    if (!container.classList.contains('side-scroll')) return;
+                    const middle = container.scrollLeft + (container.offsetWidth / 2);
+                    let closestCard = null;
+                    let closestDistance = Infinity;
+                    cards.forEach(card => {
+                        const cardMiddle = card.offsetLeft + (card.offsetWidth / 2);
+                        const distance = Math.abs(middle - cardMiddle);
+                        if (distance < closestDistance) {
+                            closestDistance = distance;
+                            closestCard = card;
+                        }
+                        card.classList.remove('active');
+                    });
+                    if (closestCard) {
+                        closestCard.classList.add('active');
+                    }
+                }
+                let scrollTimeout;
+                container.addEventListener('scroll', function() {
+                    clearTimeout(scrollTimeout);
+                    scrollTimeout = setTimeout(updateActiveCard, 100);
+                }, { passive: true });
+                updateActiveCard();
+                window.addEventListener('resize', updateActiveCard, { passive: true });
+            }
         });
     </script>
 } 

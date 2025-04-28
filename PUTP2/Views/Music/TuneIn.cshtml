@@ -18,10 +18,10 @@
         <i class="fas fa-moon"></i>
     </button>
 
-    <h1 class="vault-title">tune in</h1>
+    <h1 class="vault-title">Tune In</h1>
 
     <div class="filter-controls-container">
-        <input type="text" id="playlistSearchInput" class="search-input" placeholder="Search playlists...">
+        <input type="text" id="playlistSearchInput" class="search-input" placeholder="Search Playlists...">
         
         <div class="dropdown-container">
             <button class="dropdown-button" id="levelDropdownButton">
@@ -40,7 +40,7 @@
     {
         <div class="playlist-cards-container">
             <div class="playlist-cards-grid">
-                @foreach (var playlist in Model.Playlists)
+                @foreach (var playlist in Model.Playlists.Where(p => new[] { "How do you want to be remembered by the people you love", "Advice to the younger generation", "Favourite Meal growing up", "Favourite Childhood Game", "Childhood Lullaby" }.Contains(p.Title)))
                 {
                     <div class="playlist-card-wrapper" data-playlist-id="@playlist.Id">
                         <div class="playlist-card" data-level="@playlist.Level">
@@ -56,9 +56,6 @@
                                 </div>
                             </div>
                         </div>
-                        <button class="delete-playlist-btn" onclick="deletePlaylist('@playlist.Id', '@playlist.Title')">
-                            <i class="fas fa-trash"></i>
-                        </button>
                     </div>
                 }
             </div>
@@ -75,16 +72,44 @@
 
     <a href="/Home/Splash" class="switch-view-button">
         <i class="fas fa-record-vinyl"></i>
-        <span>the vault</span>
+        <span>The Vault</span>
     </a>
 
-    <a href="/Music/TuneInUpload" class="upload-button">
+@*     <a href="/Music/TuneInUpload" class="upload-button">
         <i class="fas fa-plus"></i>
-    </a>
+    </a> *@
 </div>
 
 @section Styles {
     <style>
+        @@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;700&display=swap');
+        @@font-face {
+            font-family: 'Americane';
+            src: url('/fonts/Americane-Bold.woff2') format('woff2'),
+                 url('/fonts/Americane-Bold.woff') format('woff');
+            font-weight: bold;
+            font-style: normal;
+        }
+        html, body, .vault-container, .playlist-cards-grid, .playlist-card-front, .playlist-card-back, .playlist-info, .playlist-info h2, .playlist-info p, .profile-button, .view-toggle-button, .dark-mode-toggle, .switch-view-button, .upload-button {
+            color: #171717 !important;
+            font-family: 'IBM Plex Sans', Arial, sans-serif;
+            font-weight: 400;
+        }
+        .vault-title, h1.page-title, h1.vault-title, h1 {
+            font-family: 'Americane', Arial, sans-serif !important;
+            font-weight: bold !important;
+            color: #171717 !important;
+        }
+        .playlist-info h2, .panel-header h3, h2, h3, .sub-header {
+            font-family: 'IBM Plex Sans', Arial, sans-serif !important;
+            font-weight: 700 !important;
+            color: #171717 !important;
+        }
+        .playlist-info p, .playlist-info, p, span, label, input, select, button, a, .status-text, .form-control, .dropdown-content a, .dropdown-button, .create-playlist-btn {
+            font-family: 'IBM Plex Sans', Arial, sans-serif !important;
+            font-weight: 400 !important;
+            color: #171717 !important;
+        }
         /* Add styles for html and body */
         html, body {
             margin: 0;

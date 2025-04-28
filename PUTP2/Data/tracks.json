@@ -1,1 +1,28 @@
-[]
+[
+  {
+    "Id": "c6b3c535-4ef7-416b-81c3-b6307bdabbbc",
+    "Name": "LAMAS",
+    "FilePath": "C:\\Users\\John\\source\\repos\\Pick-Up-The-Phone-New\\PUTP2\\Data\\UploadedSongs\\d1e8ca20-29c3-4c87-9c48-0f5b56c713aa.mp3",
+    "UploadDate": "2025-04-28T09:02:46.8917694+08:00",
+    "Duration": "0:00",
+    "IsRecording": false,
+    "Artist": null,
+    "UserTag": null,
+    "Location": "paris",
+    "ImageUrl": "/images/track_7471e4c6-b0e3-4378-8729-ed2325961c08.jpg",
+    "AgeGroup": "Old"
+  },
+  {
+    "Id": "45c60ca6-9e13-4c82-8e69-298c43455359",
+    "Name": "tubero",
+    "FilePath": "C:\\Users\\John\\source\\repos\\Pick-Up-The-Phone-New\\PUTP2\\Data\\UploadedSongs\\adcfbc0f-a416-41ef-8f84-eada0197db02.mp3",
+    "UploadDate": "2025-04-28T09:22:11.6684333+08:00",
+    "Duration": "0:00",
+    "IsRecording": false,
+    "Artist": null,
+    "UserTag": null,
+    "Location": "wadaa",
+    "ImageUrl": "/images/default-album-cover.jpg",
+    "AgeGroup": "Young"
+  }
+]
