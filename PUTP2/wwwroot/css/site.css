@@ -49,7 +49,7 @@
 
 /* Global text style */
 * {
-    text-transform: lowercase;
+    /* text-transform: lowercase; */
     font-family: var(--font-primary);
     letter-spacing: -0.02em;
 }

@@ -5,6 +5,15 @@
     ViewData["HidePlayerBar"] = "true";
 }
 
+@functions {
+    public static string ToTitleCase(string str)
+    {
+        if (string.IsNullOrEmpty(str)) return str;
+        var culture = System.Globalization.CultureInfo.CurrentCulture;
+        return culture.TextInfo.ToTitleCase(str.ToLower());
+    }
+}
+
 <div class="vault-container">
     <a href="/Music/Profile" class="profile-button">
         <i class="fas fa-user"></i>
@@ -51,8 +60,8 @@
                                     </div>
                                     <div class="playlist-card-back">
                                         <div class="playlist-info">
-                                            <h2>@playlist.Title</h2>
-                                            <p>@playlist.TrackCount tracks • @playlist.Duration</p>
+                                            <h2>@ToTitleCase(playlist.Title)</h2>
+                                            <p>@playlist.TrackCount Tracks • @playlist.Duration</p>
                                         </div>
                                     </div>
                                 </div>
@@ -66,7 +75,7 @@
 
     <a href="/Home/TuneInSplash" class="switch-view-button">
         <i class="fas fa-broadcast-tower"></i>
-        <span>tune in</span>
+        <span>Tune In</span>
     </a>
 
     <a href="/Music/Upload" class="upload-button">
@@ -196,7 +205,6 @@
             font-size: 2.5em;
             color: #000000;
             transition: color 0.3s ease;
-            text-transform: none !important;
         }
 
         .playlist-cards-container {
